@@ -1,0 +1,13 @@
+[Unit]
+Description=ROT13 demo service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=~/kujijibot/Botest_test.py
+
+[Install]
+WantedBy=multi-user.target
