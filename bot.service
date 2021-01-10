@@ -1,0 +1,14 @@
+[Unit]
+Description=bot_start
+After=multi-user.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/root/kujijibot
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/usr/bin/python3 /root/kujijibot/BOT_MAIN.py
+
+[Install]
+WantedBy=multi-user.target
