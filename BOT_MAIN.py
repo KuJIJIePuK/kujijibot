@@ -105,6 +105,9 @@ async def event_ready():
         last['sr'+chan] = '00 00 00'
         last['sk'+chan] = '00 00 00'
         last['fol'+chan] = '00 00 00'
+        last['bot'+chan] = '00 00 00'
+        last['help'+chan] = '00 00 00'
+
 
 @bot.event
 async def event_message(ctx):
@@ -179,28 +182,33 @@ async def event_message(ctx):
 
         if mesag == 'bot':
             if 'hubibich' in chan:                
-                m1 = 'help + команда выдаст подробности. Команды: "botf" , "botm" , "botb", "boti "+ник (можно через @)'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botf" , "botm" , "botb", "boti "+ник (можно через @)'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             elif chan+'_i' in dconf:
-                m1 = 'help + команда выдаст подробности. Команды: "botf", "botb", "boti "+ник (можно через @)'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botf", "botb", "boti "+ник (можно через @)'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             else:
-                m1 = 'help + команда выдаст подробности. Команды: "botb" антиботфлуд, "botf" антифлуд'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botb" антиботфлуд, "botf" антифлуд'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-        if mesag.startswith('help '):
-            if 'botf' in mesag:
-                m1 = 'Это режим антифлуда. Если недавно (от одного пользователя) было отправленно много коротких сообщений или много одинаковых, то после предупреждения выдастся мут (если есть модерка)'
-                await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-            if 'botb' in mesag:
-                m1 = 'Это режим антиботов. Если набирается несколько одинаковых сообщений от разных пользователей, ставится режим только для фолловеров, так же выключает его через 90 секунд (если есть сообщения в чате) нужна модерка'
-                await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-            if 'boti' in mesag:
-                m1 = 'Добавляет пользователя в список игнора, тоесть при включенном режиме антифлуда ему не будет выдаваться предупреждения и мут'
-                await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-            if 'botm' in mesag:
-                m1 = 'Переключает режим заказа и скипа музыки для ручного добавления (на всякий случай)'
-                await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-
+        if mesag.startswith('help'):
+            las = time0(time_now)-time0(last['help'+str(ctx.channel)])
+            if las > 3 or las < 0:
+                last['help'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
+                if 'botf' in mesag:
+                    m1 = 'Это режим антифлуда. Если недавно (от одного пользователя) было отправленно много коротких сообщений или много одинаковых, то после предупреждения выдастся мут (если есть модерка)'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                elif 'botb' in mesag:
+                    m1 = 'Это режим антиботов. Если набирается несколько одинаковых сообщений от разных пользователей, ставится режим только для фолловеров, так же выключает его через 90 секунд (если есть сообщения в чате) нужна модерка'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                elif 'boti' in mesag:
+                    m1 = 'Добавляет пользователя в список игнора, тоесть при включенном режиме антифлуда ему не будет выдаваться предупреждения и мут'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                elif 'botm' in mesag:
+                    m1 = 'Переключает режим заказа и скипа музыки для ручного добавления (на всякий случай)'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                else:
+                    m1 = 'Основные (невыключаемые) функции это муты: за рекламу накрутки (стандартную), за запретные на твиче слова (п,н,д), за что-то типа "зайдите на стрим" (требуется модерка)'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
 
         if mesag.startswith('boti'):
             temp = str(ctx.content)
@@ -266,12 +274,16 @@ async def event_message(ctx):
 
     else:
         if mesag == 'bot':
-            m1 = 'Команды: !elo'
-            await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+            las = time0(time_now)-time0(last['bot'+str(ctx.channel)])
+            if las > 25 or las < 0:
+                m1 = 'Команды: !elo'
+                await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                last['bot'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
+
 
     if  autor in dconf[chan+'_i']:
         antf = 0
-        antb = 0
+
 
     if  autor in botlist:
         antf = 0
