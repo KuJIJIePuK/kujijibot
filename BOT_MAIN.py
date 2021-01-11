@@ -22,7 +22,7 @@ dl = {}
 last = {}
 dmax = 8
 
-dirconf = 'bot1.cfg'
+dirconf = 'bot.cfg'
 
 d['tem'] = time.strftime('%Y-%m-%d', time.localtime())
 tem = time.strftime('%Y-%m-%d', time.localtime())
@@ -51,27 +51,29 @@ for line in t:
             for t1 in line:
                 if not t1 == line[0]:
                     dconf[line[0]].append(t1)
-#print(dconf)
 
 @bot.event
 async def event_raw_data(data):
     if 'followers-only=' in data:
         time_now = time.strftime('%H:%M:%S', time.localtime())
-        t0 = re.findall(r'followers-only=([0-9]+)',data)
+        t0 = re.findall(r'followers-only=([-0-9]+)',data)
         if t0:
-            t1 = re.findall(r'#(\S+)',data)
+            t1 = re.findall(r'ROOMSTATE #([\w_-]+)[\b]*',data)
+            if not os.path.exists('LOG/LOG '+d['tem']+'/'+t1[0]):
+                os.makedirs('LOG/LOG '+d['tem']+'/'+t1[0])
             if t0[0] == '0':
-                last['fol'+chan]=str(time_now)
-                addfile('LOG/LOG '+d['tem']+'/'+chan+'/'+'LOG '+'.txt','Фолловмод включен''\n')
+                last['fol'+t1[0]]=str(time_now)
+                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод включен''\n')
             elif t0[0] == '-1':
-                last['fol'+chan]='00 00 00'
-                addfile('LOG/LOG '+d['tem']+'/'+chan+'/'+'LOG '+'.txt','Фолловмод выключен''\n')
-
+                last['fol'+t1[0]]='00 00 00'
+                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод выключен''\n')
+        #print(last['fol'+t1[0]])
 
 @bot.event
 async def event_ready():
     time_now = time.strftime('%H:%M:%S', time.localtime())
-    addfile('START_LOG.txt',tem+' '+time_now+'\n')
+    time4 = str(int(time_now[0:2])+4)+':'+time_now[3:]
+    addfile('START_LOG.txt',tem+' '+time_now+' ('+time4+')'+'\n')
     ws = bot._ws  # this is only needed to send messages within event_ready
     #await _websocket.send(f'PRIVMSG #kujijiepuk :.w kujijiepuk hello\r\n')
     #await ws.send_privmsg('kujijiepuk', '.w kujijiepuk has landed!')
@@ -96,11 +98,6 @@ async def event_ready():
             dconf[ch] = []
             confignore(dirconf,ch,'kujijibot')
 
-        #if chan+'f' not in d:
-        #    d[str(chan)+'f'] = 1
-        #    inp = open('bot.cfg','a',encoding='utf8')
-        #    inp.write(chan+'f 1\n')
-        #    inp.close()
         last['elo'+chan] = '00 00 00'
         last['sr'+chan] = '00 00 00'
         last['sk'+chan] = '00 00 00'
@@ -131,8 +128,7 @@ async def event_message(ctx):
     if not os.path.exists('LOG/LOG '+tem+'/'+str(chan)+'/'):
         os.makedirs('LOG/LOG '+tem+'/'+str(chan)+'/')
 
-    
-    
+
     dir_user_log = 'LOG/LOG '+tem+'/'+str(ctx.channel)+'/'+ctx.author.name+'.txt'
     dir_chan_log = 'LOG/LOG '+tem+'/'+str(ctx.channel)+'/'+'LOG '+tem+'.txt'
     mute_log = 'LOG/LOG '+tem+'/'+str(ctx.channel)+'/'+'MUTE_BAN LOG '+tem+'.txt'
@@ -181,7 +177,7 @@ async def event_message(ctx):
         antf = 0
 
         if mesag == 'bot':
-            if 'hubibich' in chan:                
+            if 'hubibich' in chan:
                 m1 = 'help + команда выдаст подробности. Команды: "help", "botf" , "botm" , "botb", "boti "+ник (можно через @)'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             elif chan+'_i' in dconf:
@@ -284,10 +280,8 @@ async def event_message(ctx):
     if  autor in dconf[chan+'_i']:
         antf = 0
 
-
     if  autor in botlist:
         antf = 0
-
 
     t2 = re.findall(r'([пидорpidor][^абвгдеёжзклмнстуфхцчшщъыьэюяabcefjhklmnqstvwxyz_\W]+)',mesag)
     t0 = ''.join(map(str, t2))
@@ -368,34 +362,10 @@ async def event_message(ctx):
             delay = 0
         else:
             delay = 4
-        if 'youtu' in t1:
-            if 'v=' in t1 :
-                if not '?v=' in t1:
-                    t2 = re.findall(r'v=([\w-]+)[&?]',t1)
-                    t1 = t2[0]
-                    t0 = 'youtu.be/'+t1
-                elif 'v=' in t1:
-                    t2 = re.findall(r'v=([\w-]+)',t1)
-                    t1 = t2[0]
-                    t0 = 'youtu.be/'+t1
-            elif 'youtu.be/' in t1 and '?' in t1 or '&' in t1:
-                t2 = re.findall(r'youtu.be/([\w-]+)[?&\s]',t1)
-                t1 = t2[0]
-                t0 = 'youtu.be/'+t1
-            else:
-                t0 = t1.replace('https://','')
-            time.sleep(delay)
-            await ctx.channel.send(f'!sr '+t0)
-            last['sr'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
-            
-        else:
-            if '!sr' in ctx.content.lower():
-                time.sleep(delay)
-                await ctx.channel.send(f''+t1)
-                last['sr'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
-            time.sleep(delay)
-            await ctx.channel.send(f'!sr '+t1)
-            last['sr'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
+        t0 = mreq(t1)
+        time.sleep(delay)
+        await ctx.channel.send(f''+t0)
+        last['sr'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
 
     if ctx.author.reward == '9972db1c-8d86-4b96-8c23-a490315fb41b' and 'hubibich' in str(ctx.channel):
         t1 = str(ctx.content)
@@ -406,29 +376,16 @@ async def event_message(ctx):
             delay = 0
         else:
             delay = 4
-        if 'youtu' in t1:
-            if 'v=' in t1 :
-                if not '?v=' in t1:
-                    t2 = re.findall(r'v=(\S+)[&?]',t1)
-                    t1 = t2[0]
-                    t0 = 'youtu.be/'+t1
-                else:
-                    t2 = re.findall(r'v=(\S+)',t1)
-                    t1 = t2[0]
-                    t0 = 'youtu.be/'+t1
-            elif 'youtu.be/' in t1 and '?' in t1 or '&' in t1:
-                t2 = re.findall(r'youtu.be/(\S+)[?&\s]',t1)
-                t1 = t2[0]
-                t0 = 'youtu.be/'+t1
-            else:
-                t0 = t1.replace('https://','')
+        t0 = mreq(t1)
+        t0=t0.replace('!sr ','')
+        if 'youtu' in t0:
             time.sleep(delay)
             await ctx.channel.send(f'!removesong '+t0)
-            last['sk'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
         else:
             time.sleep(delay)
             await ctx.channel.send(f'!skip')
-            last['sk'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
+        last['sk'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())        
+
 
     #   Запись всех сообщений в дневник (dmax = кол-во последних сообщений пользователя)
     if not 'fanjqiwehnqugvjklbanjikncvoiuquifo' in mesag:

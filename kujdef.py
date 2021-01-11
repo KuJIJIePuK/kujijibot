@@ -6,7 +6,7 @@ def time0(s):
     return (int(s[0:2])*60*60+int(s[3:5])*60+int(s[6:8]))
 
 def addfile(di,m):
-    if not os.path.exists(di):
+    if not os.path.isfile(di):
         inp = open(di,'w',encoding='utf8')
         inp.close()
     inp = open(di,'a',encoding='utf8')
@@ -83,3 +83,27 @@ def defelo(mesag,nik):
         return t1[0]
     except:
         return -1
+
+def mreq(t1):
+    if 'youtu' in t1:
+        if 'v=' in t1 :
+            if not '?v=' in t1:
+                t2 = re.findall(r'v=([\w-]+)[&?]',t1)
+                t1 = t2[0]
+                t0 = 'youtu.be/'+t1
+            elif 'v=' in t1:
+                t2 = re.findall(r'v=([\w-]+)',t1)
+                t1 = t2[0]
+                t0 = 'youtu.be/'+t1
+        elif 'youtu.be/' in t1 and '?' in t1 or '&' in t1:
+            t2 = re.findall(r'youtu.be/([\w-]+)[?&\s]',t1)
+            t1 = t2[0]
+            t0 = 'youtu.be/'+t1
+        else:
+            t0 = t1.replace('https://','')
+        return('!sr '+t0)        
+    else:
+        if not t1.startswith('!sr'):
+            return('!sr '+t1)
+        else:
+            return(t1)
