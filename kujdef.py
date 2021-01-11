@@ -20,11 +20,16 @@ def coun(l,s,j):
             if not len(s1)>len(s)+j:
                 i+=1
     return i
-def df(d,s):
+def df(d,s,tim):
     i = 0
     for t in d:
-        if d[t]==s:
-            i+=1
+        te = d[t]
+        te = te[9:]
+        if te==s:
+            t1 = time0(tim)
+            t2 = time0(d[t])
+            if t1-t2<=5:
+                i+=1
     return i
 
 def confre(di,ch,r):
@@ -36,7 +41,6 @@ def confre(di,ch,r):
     inp = open(di,'w',encoding='utf8')
     for line in t:
         if ch in line:
-            print(line)
             line = ch+' '+str(r)+'\n'
             rr = 1
         inp.write(line)

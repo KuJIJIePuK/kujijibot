@@ -15,7 +15,7 @@ bot = commands.Bot(
     prefix='k',
     initial_channels=ichan
 )
-botlist = ['streamelements','moobot','nightbot','mikuia','kujijibot']
+botlist = ['streamelements','moobot','nightbot','mikuia','wizebot','kujijibot']
 dconf = {}
 d = {}
 dl = {}
@@ -41,33 +41,22 @@ for line in t:
     if not line == '\n':
         line = line.replace('\n','')
         line = line.split(' ')
-        if not '_i' in line[0]:
-            if len(line)>1:
-                dconf[line[0]]=line[1]
-            else:
-                d[line[0]]='0'
-        elif '_i' in line[0]:
+        if '_i' in line[0]:
             dconf[line[0]]=[]
             for t1 in line:
                 if not t1 == line[0]:
                     dconf[line[0]].append(t1)
+        elif 'elo_' in line[0]:
+            dconf[line[0]]=[]
+            for t1 in line:
+                if not t1 == line[0]:
+                    dconf[line[0]].append(t1)
+        else:# not '_i' in line[0]:
+            if len(line)>1:
+                dconf[line[0]]=line[1]
+            else:
+                d[line[0]]='0'
 
-@bot.event
-async def event_raw_data(data):
-    if 'followers-only=' in data:
-        time_now = time.strftime('%H:%M:%S', time.localtime())
-        t0 = re.findall(r'followers-only=([-0-9]+)',data)
-        if t0:
-            t1 = re.findall(r'ROOMSTATE #([\w_-]+)[\b]*',data)
-            if not os.path.exists('LOG/LOG '+d['tem']+'/'+t1[0]):
-                os.makedirs('LOG/LOG '+d['tem']+'/'+t1[0])
-            if t0[0] == '0':
-                last['fol'+t1[0]]=str(time_now)
-                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод включен''\n')
-            elif t0[0] == '-1':
-                last['fol'+t1[0]]='00 00 00'
-                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод выключен''\n')
-        #print(last['fol'+t1[0]])
 
 @bot.event
 async def event_ready():
@@ -93,18 +82,49 @@ async def event_ready():
         if ch not in dconf:
             dconf[ch] = '0'
             confre(dirconf,ch,dconf[ch])
+        ch = 'elo_'+chan
+        if ch not in dconf:
+            dconf[ch] = []
+            dconf[ch].append(chan)
+            confignore(dirconf,ch,chan)
+        ch = chan+'_elo'
+        if ch not in dconf:
+            dconf[ch] = '0'
+            confre(dirconf,ch,dconf[ch])
         ch = chan+'_i'
         if ch not in dconf:
             dconf[ch] = []
             confignore(dirconf,ch,'kujijibot')
+        if 'elo'+chan not in last:
+            last['elo'+chan] = '00 00 00'
+        if 'sr'+chan not in last:
+            last['sr'+chan] = '00 00 00'
+        if 'sk'+chan not in last:
+            last['sk'+chan] = '00 00 00'
+        if 'fol'+chan not in last:
+            last['fol'+chan] = '00 00 00'
+        if 'bot'+chan not in last:
+            last['bot'+chan] = '00 00 00'
+        if 'help'+chan not in last:
+            last['help'+chan] = '00 00 00'
 
-        last['elo'+chan] = '00 00 00'
-        last['sr'+chan] = '00 00 00'
-        last['sk'+chan] = '00 00 00'
-        last['fol'+chan] = '00 00 00'
-        last['bot'+chan] = '00 00 00'
-        last['help'+chan] = '00 00 00'
 
+@bot.event
+async def event_raw_data(data):
+    if 'followers-only=' in data:
+        time_now = time.strftime('%H:%M:%S', time.localtime())
+        t0 = re.findall(r'followers-only=([-0-9]+)',data)
+        if t0:
+            t1 = re.findall(r'ROOMSTATE #([\w_-]+)[\b]*',data)
+            if not os.path.exists('LOG/LOG '+d['tem']+'/'+t1[0]):
+                os.makedirs('LOG/LOG '+d['tem']+'/'+t1[0])
+            if t0[0] == '0':
+                last['fol'+t1[0]]=str(time_now)
+                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод включен''\n')
+
+            elif t0[0] == '-1':
+                last['fol'+t1[0]]='00 00 00'
+                addfile('LOG/LOG '+d['tem']+'/'+t1[0]+'/'+'LOG '+d['tem']+'.txt',time_now+' Фолловмод выключен''\n')
 
 @bot.event
 async def event_message(ctx):
@@ -138,7 +158,9 @@ async def event_message(ctx):
     mt = mesag.split(' ')
 
     if mesag.startswith('!elo'):
-        if 'hubibich' in chan or 'hubbich' in chan or 'kujijiepuk' in chan:
+        if dconf[chan+'_elo']=='1':
+        #if 'hubibich' in chan or 'hubbich' in chan or 'kujijiepuk' in chan:
+
             doelo = -1
             las = time0(time_now)-time0(last['elo'+str(ctx.channel)])
             if ctx.author.type == 'mod' or 'badges=broadcaster' in ctx.raw_data:
@@ -146,8 +168,12 @@ async def event_message(ctx):
             elif las > 5 or las < 0:
                 doelo = 1
             if doelo == 1:
-                nik = 'hubbich'
+                #print(dconf['elo_'+chan])
+                
+                #nik = 'hubbich'
                 t2 = []
+                t2 = dconf['elo_'+chan]
+                nik = t2[0]
                 t2 = re.findall(r'!elo (\S+)',mesag)
                 try:
                     nik = t2[0]
@@ -178,13 +204,13 @@ async def event_message(ctx):
 
         if mesag == 'bot':
             if 'hubibich' in chan:
-                m1 = 'help + команда выдаст подробности. Команды: "help", "botf" , "botm" , "botb", "boti "+ник (можно через @)'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             elif chan+'_i' in dconf:
-                m1 = 'help + команда выдаст подробности. Команды: "help", "botf", "botb", "boti "+ник (можно через @)'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botf", "botb", "botelo", "boti "+ник'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             else:
-                m1 = 'help + команда выдаст подробности. Команды: "help", "botb" антиботфлуд, "botf" антифлуд'
+                m1 = 'help + команда выдаст подробности. Команды: "help", "botelo", "botb" антиботфлуд, "botf" антифлуд'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
         if mesag.startswith('help'):
             las = time0(time_now)-time0(last['help'+str(ctx.channel)])
@@ -201,6 +227,9 @@ async def event_message(ctx):
                     await ctx.channel.send(f''+m1+' @'+ctx.author.name)
                 elif 'botm' in mesag:
                     m1 = 'Переключает режим заказа и скипа музыки для ручного добавления (на всякий случай)'
+                    await ctx.channel.send(f''+m1+' @'+ctx.author.name)
+                elif 'botelo' in mesag:
+                    m1 = 'Включает/Выключает команду !elo, так же если написать "botelo "+ник на faceit, он установится как стандартный'
                     await ctx.channel.send(f''+m1+' @'+ctx.author.name)
                 else:
                     m1 = 'Основные (невыключаемые) функции это муты: за рекламу накрутки (стандартную), за запретные на твиче слова (п,н,д), за что-то типа "зайдите на стрим" (требуется модерка)'
@@ -227,6 +256,44 @@ async def event_message(ctx):
                     await ctx.channel.send(nick+' удалён из списка игнора антифлуда @'+ctx.author.name)
                 ch = chan+'_i'
                 confignore(dirconf,ch,nick)
+        if mesag == 'botelo':
+            ch = chan+'_elo'
+            if not ch in dconf:
+                dconf[ch] = '1'
+            if dconf[ch] == '1':
+                dconf[ch] = '0'
+                stat = 'выключен'
+            elif dconf[ch] == '0':
+                dconf[ch] = '1'
+                stat = 'включен'
+            await ctx.channel.send(f'!elo '+stat+' @'+ctx.author.name)
+            confre(dirconf,ch,dconf[ch])
+
+        elif mesag.startswith('botelo'):
+            temp = str(ctx.content)
+            temp = temp.replace('botelo','')
+            temp = temp.replace('@','')
+            if len(temp)>1:
+                t1 = temp.split(' ')
+                t1.remove('')
+                temp = temp.replace(' ','')
+            nick = temp.lower()
+            if len(nick)<=1 or len(t1)>1:
+                await ctx.channel.send(f'Ошибка, попробуйте ещё раз @'+ctx.author.name)
+            else:
+                ch = 'elo_'+chan
+                templ = dconf['elo_'+chan]
+                #print(dconf['elo_'+chan])
+                if not nick in templ:
+                    #print(nick)
+                    if nick not in dconf['elo_'+chan]:
+                        t1 = dconf['elo_'+chan]
+                        confignore(dirconf,ch,t1[0])
+                        templ.remove(t1[0])
+                    #templ = nick
+                    await ctx.channel.send(nick+' добавлен как стандарт в !elo @'+ctx.author.name)  
+                    dconf['elo_'+chan].append(nick)
+                    confignore(dirconf,ch,nick)
 
         if mesag == 'botf':
             ch = chan+'_f'
@@ -240,7 +307,6 @@ async def event_message(ctx):
                 stat = 'включен'
             await ctx.channel.send(f'Антифлуд '+stat+' @'+ctx.author.name)
             confre(dirconf,ch,dconf[ch])
-            
 
         if mesag == 'botb':
             ch = chan+'_b'
@@ -345,7 +411,7 @@ async def event_message(ctx):
             addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
 
     if ctx.author.reward == '2499dbb9-7630-436c-8e0f-98d64b6822ae' and 'hubibich' in str(ctx.channel):
-        t0 = re.findall(r'([a-z\d-]+)',mesag)
+        t0 = re.findall(r'\s*([a-z\d_-]+)\s*',mesag)
         muted = 'ошибка'
         try:
             muted = t0[0]
@@ -406,10 +472,11 @@ async def event_message(ctx):
             if ctx.author.name+str(i-1) in d:
                 d[ctx.author.name+str(i)] = d[ctx.author.name+str(i-1)]
         temp = ctx.content.lower()
+        t1 = re.sub('[!@#$%^&*(),.?<>]','',temp)
         d[ctx.author.name+'0'] = time_now+' '+temp
-        dl[ctx.author.name] = temp
-
-        if df(dl,temp)>=5 and dconf[chan+'_b'] == '1':
+        dl[ctx.author.name] = time_now+' '+t1
+        #print(dl)
+        if df(dl,t1,time_now)>=5 and dconf[chan+'_b'] == '1' and temp!= '!play':
             await ctx.channel.followers()
             addfile(dir_chan_log,'Фолловмод включен''\n')
             last['fol'+chan]=str(time_now)
@@ -418,7 +485,8 @@ async def event_message(ctx):
                     del dl[key]
 
         if last['fol'+chan]!='00 00 00' and dconf[chan+'_b'] == '1':
-            if time0(time_now)-time0(last['fol'+chan])>=90:
+            ti = time0(time_now)-time0(last['fol'+chan])
+            if ti>=90 or ti<0:
                 await ctx.channel.followersoff()
                 addfile(dir_chan_log,'Фолловмод выключен''\n')
                 last['fol'+chan]='00 00 00'
@@ -594,7 +662,7 @@ async def event_message(ctx):
                     if ctx.author.name+str(i) in d:
                         del d[ctx.author.name+str(i)]
                 d[ctx.author.name+'p'] = '00.00.00'
-                print('Мут '+ctx.author.name+' за флуд на '+str(mute_time)+' в '+time_now)
+                print('Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+' в '+time_now)
                 addfile(dir_chan_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
                 addfile(dir_user_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
 
