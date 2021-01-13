@@ -111,3 +111,83 @@ def mreq(t1):
             return('!sr '+t1)
         else:
             return(t1)
+
+def listedit(di,mes,com):
+    j = '-1'
+    if com!='добавить':
+        mes=mes.lower()
+        mes = re.sub('[!@#$%^&*,.?<>]','',mes)
+    ti = mes.split(' ')
+    inp = open(di,'r',encoding='utf8')
+    t = inp.readlines()
+    inp.close()
+    l = []
+    sk = -1
+    for line in t:
+        l.append(line)
+    if com == 'поднять':
+        i = -1
+        rr = -1
+        while i<len(l)-1 and rr!=1:
+            i+=1
+            t2 = re.sub('[!@#$%^&*,.?<>]','',l[i])
+            t2 = t2.lower()
+            tj = t2.split(' ')
+            t3 = list(set(ti) & set(tj))
+            if set(ti)==set(t3) and not i==0:
+                j = i
+                temp = l[i-1]
+                l[i-1] = l[i]
+                l[i] = temp
+                rr = 1
+    elif com == 'найти':
+        sk = 1
+        i = -1
+        rr = -1
+        while i<len(l)-1 and rr!=1:
+            i+=1
+            t2 = re.sub('[!@#$%^&*,.?<>]','',l[i])
+            t2 = t2.lower()
+            tj = t2.split(' ')
+            t3 = list(set(ti) & set(tj))
+            if set(ti)==set(t3):
+                j = i
+                rr = 1
+    elif com == 'опустить':
+        i = -1
+        rr = -1
+        while i<len(l)-1 and rr!=1:
+            i+=1
+            t2 = re.sub('[!@#$%^&*,.?<>]','',l[i])
+            t2 = t2.lower()
+            tj = t2.split(' ')
+            t3 = list(set(ti) & set(tj))
+            if set(ti)==set(t3) and not i==len(l)-1:
+                j = i
+                temp = l[i+1]
+                l[i+1] = l[i]
+                l[i] = temp
+                rr = 1
+    elif com == 'удалить':
+        i = -1
+        rr = -1
+        while i<len(l)-1 and rr!=1:
+            i+=1
+            t2 = re.sub('[!@#$%^&*,.?<>]','',l[i])
+            t2 = t2.lower()
+            tj = t2.split(' ')
+            t3 = list(set(ti) & set(tj))
+            if set(ti)==set(t3):
+                j = l[i].replace('\n','')
+                l.remove(l[i])
+                rr = 1
+    elif com == 'добавить':
+        l.append(mes+'\n')
+        j = len(l)-1
+    
+    if not sk == 1:
+        inp = open(di,'w',encoding='utf8')
+        for s in l:
+            inp.write(s)
+        inp.close()
+    return str(j)
