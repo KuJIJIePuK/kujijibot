@@ -6,6 +6,7 @@ from twitchio.ext import commands
 from urllib.request import urlopen, Request
 from variables import *
 from kujdef import *
+from hht import *
 #from defnew import *
 
 bot = commands.Bot(
@@ -15,7 +16,7 @@ bot = commands.Bot(
     prefix='k',
     initial_channels=ichan
 )
-botlist = ['streamelements','moobot','nightbot','mikuia','wizebot','kujijibot']
+botlist = ['streamelements','moobot','nightbot','mikuia','wizebot','kujijibot','nyan_rab']
 dconf = {}
 d = {}
 dl = {}
@@ -23,7 +24,7 @@ last = {}
 dmax = 8
 
 dirconf = 'bot.cfg'
-dirlist = 'anime.txt'
+dirlist = 'lists/anime.txt'
 d['tem'] = time.strftime('%Y-%m-%d', time.localtime())
 tem = time.strftime('%Y-%m-%d', time.localtime())
 #if not os.path.exists('LOG/LOG '+tem+'/'+str(chan)+'/'):
@@ -113,6 +114,8 @@ async def event_ready():
             last['help'+chan] = '00 00 00'
         if 'anim'+chan not in last:
             last['anim'+chan] = '00 00 00'
+        if 'swap'+chan not in last:
+            last['swap'+chan] = '00 00 00'
 
 
 @bot.event
@@ -138,7 +141,7 @@ async def event_raw_data(data):
 @bot.event
 async def event_message(ctx):
     time_now = time.strftime('%H:%M:%S', time.localtime())
-
+    intime_now = time0(time_now)
     #tim = str(time_now)
     U_m = ctx.author.name + ': ' + ctx.content
     print(U_m)
@@ -161,7 +164,8 @@ async def event_message(ctx):
     if not os.path.exists(dir_chan):
         os.makedirs(dir_chan)
 
-
+    dir_bug_log = dir_chan+'MUTE BUG LOG '+tem+'.txt'
+    dir_anime_log = 'lists/anime_LOG.txt'
     dir_user_log = dir_chan+'/'+ctx.author.name+'.txt'
     dir_chan_log = dir_chan+'LOG '+tem+'.txt'
     mute_log = dir_chan+'MUTE_BAN LOG '+tem+'.txt'
@@ -169,54 +173,124 @@ async def event_message(ctx):
     addfile(dir_user_log,time_now+' '+U_m+'\n')
     addfile(dir_chan_log,time_now+' '+U_m+'\n')
     mt = mesag.split(' ')
-
-    if mesag.startswith('!anime') :
-        las = time0(time_now)-time0(last['anim'+str(ctx.channel)])
-        doanim = -1
-        if ctx.author.type == 'mod' or 'badges=broadcaster' in ctx.raw_data:
-            doanim = 1
-        elif las > 5 or las < 0:
-            doanim = 1
-        if doanim == 1:
-            nom = ''
-            last['anim'+str(ctx.channel)] = time_now
-            t2 = -2
-            t1 = mesag.replace('!anime ','')
-            try:
-                t2 = int(t1)
-                nom = 'Под номером '+str(t2)+' сейчас: '
-            except:
-                pass
-            inp = open(dirlist,'r',encoding='utf8')
-            t = inp.readlines()
-            inp.close()
-            #print(t2!=-2 and t2>0 and t2<=len(t))
-            #print(t2 == -2)
-            #print(t2<=0)
-            #print(t2>len(t))
-            #print(len(t))
-            if t2>len(t):
-                nom = 'В списке сейчас '+str(len(t))+', попробуйте ещё раз.'
-                await ctx.channel.send(f'@'+ctx.author.name+' '+nom)
-            elif t2!=-2 and t2>0:
-                await ctx.channel.send(f'@'+ctx.author.name+' '+nom+t[t2-1])
-            elif t2 == -2:
-                li = listedit(dirlist,mesag.replace('!anime ',''),'найти')
-                if li!='-1':
-                    await ctx.channel.send(f'@'+ctx.author.name+' '+t[int(li)]+' Сейчас под номером ('+str(int(li)+1)+'/'+str(len(t))+')')
+    if 'hubbich' in chan or 'kujijiepuk' in chan:
+        if mesag.startswith('!swap'):
+            doswap = 0
+            las = intime_now-time0(last['swap'+str(ctx.channel)])
+            if ctx.author.type == 'mod' or 'badges=broadcaster' in ctx.raw_data:
+                doswap = 1
+            elif las > 10 or las < 0:
+                doswap = 1
+            if doswap == 1:
+                inp = open(dirlist,'r',encoding='utf8')
+                s = inp.readlines()
+                inp.close()
+                er = 0
+                t = mesag.replace('!swap ','')
+                t = t.split(' ')
+                if len(t)!=2:
+                    er = 1
                 else:
-                    await ctx.channel.send(f'@'+ctx.author.name+' Такое название не найдено')
-            elif t2<=0:
-                await ctx.channel.send(f'@'+ctx.author.name+' Попробуйте ввести номер больше нуля -_-')
-            
-            last['anim'+str(ctx.channel)] = time_now
+                    try:
+                        ti = int(t[0])
+                        tj = int(t[1])
+                        if ti>0 and ti<len(s)-1 and tj>0 and tj<=len(s)-1:
+                            er = 0
+                        else:
+                            er = 1
+                    except:
+                        er = 1
+                        pass
+                if er!=1:
+                    if ctx.author.name in s[ti].lower() and ctx.author.name in s[tj].lower() or 'hubbich' in ctx.author.name:
+                        s[ti],s[tj]=s[tj],s[ti]
+                        inp = open(dirlist,'w',encoding='utf8')
+                        for l in s:
+                            inp.write(l)
+                        inp.close()
+                        tosite()
+                        await ctx.channel.send(f'Готово @'+ctx.author.name)
+                        addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' (swap)\n')
+                        addfile(dir_anime_log,'Готово\n')                        
+                    else:
+                        print(ctx.author.name)
+                        print(s[ti])
+                        await ctx.channel.send(f'Менять местами можно только свои заказы @'+ctx.author.name)
+                        addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' (swap)\n')
+                        addfile(dir_anime_log,'чужой заказ\n')
+                if er == 1:
+                    #print(t)
+                    await ctx.channel.send(f'Пример: "!swap 1 2" @'+ctx.author.name)
+                    addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' (swap)\n')
+                    addfile(dir_anime_log,'Неправильный запрос\n')
+                last['swap'+str(ctx.channel)] = time_now
+
+    if 'hubbich' in chan or 'hubibich' in chan or 'kujijiepuk' in chan:
+        if mesag.startswith('!list') or mesag.startswith('!список') or mesag.startswith('!anime') or mesag == '!мои' :
+            las = intime_now-time0(last['anim'+str(ctx.channel)])
+            doanim = -1
+            if ctx.author.type == 'mod' or 'badges=broadcaster' in ctx.raw_data:
+                doanim = 1
+            elif las > 5 or las < 0:
+                doanim = 1
+            if doanim == 1:
+                inp = open(dirlist,'r',encoding='utf8')
+                t = inp.readlines()
+                inp.close()
+                if mesag == '!мои':
+                    li = listedit(dirlist,str(ctx.author.name),'найти')
+                    if len(li)>0:
+                        t2 = ''
+                        nom = ''
+                        for s in li:
+                            print(nom)
+                            nom = ' ('+str(s)+'/'+str(len(t)-1)+')'
+                            t2 += t[s].replace('\n','')+' '+nom+'; '
+                        print(t2)
+                        await ctx.channel.send(t2)
+                    else:
+                        await ctx.channel.send(f'Сейчас нет ваших заказов @'+ctx.author.name)
+                elif mesag!='!anime' and mesag!='!list' and mesag!='!список':
+                    nom = ''
+                    last['anim'+str(ctx.channel)] = time_now
+                    t2 = -2
+                    t1 = mesag.replace('!anime ','')
+                    t1 = t1.replace('!list ','')
+                    t1 = t1.replace('!список ','')
+                    print(t1)
+                    try:
+                        t2 = int(t1)
+                        if t2 == 0:
+                            nom = 'Сейчас смотрим: '
+                        else:
+                            nom = 'Под номером '+str(t2)+' сейчас: '
+                    except:
+                        pass
+                    if t2>len(t)-1:
+                        nom = 'В списке сейчас '+str(len(t)-1)+', попробуйте ещё раз.'
+                        await ctx.channel.send(f'@'+ctx.author.name+' '+nom)
+                    elif t2!=-2 and t2>=0:
+                        await ctx.channel.send(f'@'+ctx.author.name+' '+nom+t[t2])
+                    elif t2 == -2:
+                        li = listedit(dirlist,t1,'найти')
+                        if li!='-1':
+                            await ctx.channel.send(f'@'+ctx.author.name+' '+t[int(li[0])]+' Сейчас под номером ('+str(int(li[0]))+'/'+str(len(t)-1)+')')
+                        else:
+                            await ctx.channel.send(f'@'+ctx.author.name+' Такое название не найдено')
+                    elif t2<0:
+                        await ctx.channel.send(f'@'+ctx.author.name+' Попробуйте ввести номер больше -_-')
+                else:
+                    #temp = 'Сейчас: '+t[0]+'1. '+t[1]+'2. '+t[2]+'3. '+t[3]+'4. '+t[4]
+                    await ctx.channel.send(f'@'+ctx.author.name+' Полный список: https://kujijiepuk.fun/lists/hubbich/')
+                
+                last['anim'+str(ctx.channel)] = time_now
 
     if mesag.startswith('!elo'):
         if dconf[chan+'_elo']=='1':
         #if 'hubibich' in chan or 'hubbich' in chan or 'kujijiepuk' in chan:
 
             doelo = -1
-            las = time0(time_now)-time0(last['elo'+str(ctx.channel)])
+            las = intime_now-time0(last['elo'+str(ctx.channel)])
             if ctx.author.type == 'mod' or 'badges=broadcaster' in ctx.raw_data:
                 doelo = 1
             elif las > 5 or las < 0:
@@ -260,7 +334,7 @@ async def event_message(ctx):
             if 'hubbich' in chan:
                 m1 = 'help + команда выдаст подробности. Команды: !anime+название "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
-            if 'hubibich' in chan:
+            elif 'hubibich' in chan:
                 m1 = 'help + команда выдаст подробности. Команды: "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
             elif chan+'_i' in dconf:
@@ -270,7 +344,7 @@ async def event_message(ctx):
                 m1 = 'help + команда выдаст подробности. Команды: "help", "botelo", "botb" антиботфлуд, "botf" антифлуд'
                 await ctx.channel.send(f''+m1+' @'+ctx.author.name)
         if mesag.startswith('help'):
-            las = time0(time_now)-time0(last['help'+str(ctx.channel)])
+            las = intime_now-time0(last['help'+str(ctx.channel)])
             if las > 3 or las < 0:
                 last['help'+str(ctx.channel)] = time.strftime('%H:%M:%S', time.localtime())
                 if 'botf' in mesag:
@@ -289,7 +363,7 @@ async def event_message(ctx):
                     m1 = 'Включает/Выключает команду !elo, так же если написать "botelo "+ник на faceit, он установится как стандартный'
                     await ctx.channel.send(f''+m1+' @'+ctx.author.name)
                 elif 'anime' in mesag:
-                    m1 = '!anime + <название> Выводит актуальную информацию об аниме (номер в списке)'
+                    m1 = '!anime + <название/номер> Выводит актуальную информацию об аниме (номер в списке)'
                     await ctx.channel.send(f''+m1+' @'+ctx.author.name)
                 else:
                     m1 = 'Основные (невыключаемые) функции это муты: за рекламу накрутки (стандартную), за запретные на твиче слова (п,н,д), за что-то типа "зайдите на стрим" (требуется модерка)'
@@ -326,7 +400,7 @@ async def event_message(ctx):
             elif dconf[ch] == '0':
                 dconf[ch] = '1'
                 stat = 'включен'
-            await ctx.channel.send(f'!elo '+stat+' @'+ctx.author.name)
+            await ctx.channel.send(f'!elo + ник '+stat+' @'+ctx.author.name)
             confre(dirconf,ch,dconf[ch])
 
         elif mesag.startswith('botelo'):
@@ -365,8 +439,9 @@ async def event_message(ctx):
             elif dconf[ch] == '0':
                 dconf[ch] = '1'
                 stat = 'включен'
-            await ctx.channel.send(f'Антифлуд '+stat+' @'+ctx.author.name)
+            await ctx.channel.send(f'Антифлуд '+stat+' @'+ctx.author.name)            
             confre(dirconf,ch,dconf[ch])
+            #await ctx.channel.send(f'Сейчас на тестировании, не работает!'+' @'+ctx.author.name)
 
         if mesag == 'botb':
             ch = chan+'_b'
@@ -396,13 +471,14 @@ async def event_message(ctx):
 
     else:
         if mesag == 'bot':
-            las = time0(time_now)-time0(last['bot'+str(ctx.channel)])
+            las = intime_now-time0(last['bot'+str(ctx.channel)])
             if las > 25 or las < 0:
                 m1 = 'Команды:'
                 if dconf[chan+'_elo']=='1':
                     m1 = ' !elo'
                 if 'hubbich' in chan:
-                    m1+=' !anime + название'
+                    m1+=' !anime/!list/!список + название или номер'
+                    m1+=' +"!мои", !swap'
                 if m1 != 'Команды:':
                     await ctx.channel.send(f''+m1+' @'+ctx.author.name)
                 else:
@@ -427,57 +503,52 @@ async def event_message(ctx):
             t3+=t3
             t0 = t0.replace(t3,t0[i])
 
+    act = ''
     if t0 == 'пидор' or t0 == 'pidor':
         await ctx.channel.timeout(ctx.author.name, 600,'гц')
         act = ' Мут '
         res = ' за запретку в '
-        print(act+ctx.author.name+res+time_now)
-        addfile(mute_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
 
+    elif 'пидор' in mt or 'pidor' in mt or 'пидар' in mt or 'pidar' in mt or 'пидарас' in mt or 'педик' in mt or 'Пiдо₽@с' in mt:
+        await ctx.channel.timeout(ctx.author.name, 600,'гц')
+        act = ' Мут '
+        res = ' за запретку в '
+        
     elif 'даун' in mt or 'нигер' in mt or 'дауны' in mt or 'даунов' in mt:
         await ctx.channel.timeout(ctx.author.name, 30,'э чо твориш')
         act = ' Мут '
         res = ' за запретку в '
-        print(act+ctx.author.name+res+time_now)
-        addfile(mute_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
-
 
     if 'зайдите' in mt and 'на' in mt and 'стрим' in mt:
         await ctx.channel.timeout(ctx.author.name, 600,'гц')
         act = ' Мут '
         res = ' за рекламу в '
-        print(act+ctx.author.name+res+time_now)
-        addfile(mute_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
-        addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
-
 
     if not os.path.isfile(mute_log):
         inp = open(mute_log,'a',encoding='utf8')
         inp.close()
 
-    if antb == 1:
-        if 'clck' in mesag and 'follow' in mesag or 'StreаmDеtаilsВot' in mesag:
-            await ctx.channel.timeout(ctx.author.name, 600,'Реклама накрутки?')
-            act = ' Мут '
-            res = ' за рекламу накрутки в '
-            print(ctx.author.name+act+res+time_now)
-            addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
-            addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
+    if 'clck' in mesag and 'follow' in mesag or 'StreаmDеtаilsВot' in mesag:
+        await ctx.channel.timeout(ctx.author.name, 600,'Реклама накрутки?')
+        act = ' Мут '
+        res = ' за рекламу накрутки в '
 
-    if antb == 1:
-        if 'pleace' in mesag and 'youtube' in mesag or 'plsss' in mesag and 'open' in mesag:
-            await ctx.channel.timeout(ctx.author.name, 600,'Реклама?')
-            act = ' Мут '
-            res = ' за рекламу в '
-            print(ctx.author.name+act+res+time_now)
-            addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
-            addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
+    if 'pleace' in mesag and 'youtube' in mesag or 'plsss' in mesag and 'open' in mesag:
+        await ctx.channel.timeout(ctx.author.name, 600,'Реклама?')
+        act = ' Мут '
+        res = ' за рекламу в '
 
+    if 'подними' in mesag and 'стрим' in mesag and not 'классные' in mesag and not 'зpители' in mesag and not 'веди диалог' in mesag:
+        await ctx.channel.timeout(ctx.author.name, 600,'Реклама накрутки?')
+        act = ' Мут '
+        res = ' за рекламу накрутки в '
+
+
+    if act != '':
+        print(ctx.author.name+act+res+time_now)
+        addfile(dir_chan_log,act+ctx.author.name+res+time_now+'\n')
+        addfile(dir_user_log,act+ctx.author.name+res+time_now+'\n')
+    act = ''
 
     #   БЛОК ВСЕХ НАГРАД
     if ctx.author.reward != 'Empty':
@@ -495,7 +566,7 @@ async def event_message(ctx):
 
         if ctx.author.reward == '70e76278-57d5-4989-a2e3-bafc14c3cc73' and 'hubibich' in str(ctx.channel):
             t1 = str(ctx.content)
-            if time0(time_now)-time0(last['sr'+str(ctx.channel)]) > 3 or time0(time_now)-time0(last['sr'+str(ctx.channel)]) < 0:
+            if intime_now-time0(last['sr'+str(ctx.channel)]) > 3 or intime_now-time0(last['sr'+str(ctx.channel)]) < 0:
                 delay = 0
             else:
                 delay = 4
@@ -506,10 +577,10 @@ async def event_message(ctx):
 
         if ctx.author.reward == '9972db1c-8d86-4b96-8c23-a490315fb41b' and 'hubibich' in str(ctx.channel):
             t1 = str(ctx.content)
-            if time0(time_now)-time0(last['sk'+str(ctx.channel)]) < 2:
+            if intime_now-time0(last['sk'+str(ctx.channel)]) < 2:
                 await ctx.channel.send(f'2 скипа сразу, упс')
                 return
-            elif time0(time_now)-time0(last['sk'+str(ctx.channel)]) > 3:
+            elif intime_now-time0(last['sk'+str(ctx.channel)]) > 3:
                 delay = 0
             else:
                 delay = 4
@@ -549,8 +620,9 @@ async def event_message(ctx):
             doli = 1
         if doli == 1:
             t2 = -2
-            spis = ' Текущий список уточняйте у @KuJIJIePuK, или через !anime'
-            if comment == 'добавить':                
+            #spis = ' Текущий список уточняйте у @KuJIJIePuK, или через !anime'
+            spis = ''
+            if comment == 'добавить':
                 li = listedit(dirlist,t1+str(ctx.content)+' ('+str(ctx.author.display_name)+')',comment)
                 inp = open(dirlist,'r',encoding='utf8')
                 t = inp.readlines()
@@ -558,24 +630,49 @@ async def event_message(ctx):
                 nom = ' ('+str(int(li)+1)+'/'+str(len(t))+')'
                 t1 = t1+str(ctx.content)+' ('+str(ctx.author.display_name)+')'
                 await ctx.channel.send(f''+t1+' '+editn+nom+' @'+ctx.author.name+spis)
+                addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' ('+comment+')\n')
+                addfile(dir_anime_log,t1+' '+editn+nom+'\n')
             elif comment == 'удалить':
                 li = listedit(dirlist,str(ctx.content),comment)
                 if not 'фильм' in li:
                     await ctx.channel.send(f''+li+' '+editn+' @'+ctx.author.name+spis)
                 else:
                     await ctx.channel.send(f''+li+' '+'Удалён'+' @'+ctx.author.name+spis)
+                addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' ('+comment+')\n')
+                addfile(dir_anime_log,li+' '+editn+'\n')
             else:
                 li = listedit(dirlist,str(ctx.content),comment)
                 try:
                     t2 = int(li)
                 except:
+                    pass
+                inp = open(dirlist,'r',encoding='utf8')
+                t = inp.readlines()
+                inp.close()
+                if t2>=0:
+                    if comment == 'поднять':
+                        nom = ' ('+str(t2)+'/'+str(len(t)-1)+')'
+                        await ctx.channel.send(f''+t[t2]+' '+editn+nom+' @'+ctx.author.name+spis)
+                    elif comment == 'опустить':
+                        nom = ' ('+str(t2)+'/'+str(len(t)-1)+')'
+                        await ctx.channel.send(f''+t[t2]+' '+editn+nom+' @'+ctx.author.name+spis)                        
+                    addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' ('+comment+')\n')
+                    addfile(dir_anime_log,t[t2].replace('\n','')+' '+editn+nom+'\n')
+                elif t2==-3:
+                    await ctx.channel.send(f'Выше некуда!'+' @'+ctx.author.name)
+                    addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' ('+comment+')\n')
+                    addfile(dir_anime_log,'Слишком высоко\n')
+                    for line in t:
+                        addfile(dir_anime_log,line)
+                    addfile(dir_anime_log,'\n')
+                else:
                     await ctx.channel.send(f'Ошибка, свяжитесь с @KuJIJIePuK'+' @'+ctx.author.name)
-                if t2!=-2 and t2!=-1:
-                    inp = open(dirlist,'r',encoding='utf8')
-                    t = inp.readlines()
-                    inp.close()
-                    nom = ' ('+str(t2+1)+'/'+len(t)+')'
-                    await ctx.channel.send(f''+t[t2]+' '+editn+nom+' @'+ctx.author.name+spis)
+                    addfile(dir_anime_log,time_now+' '+str(ctx.author.display_name)+': '+str(ctx.content)+' ('+comment+')\n')
+                    addfile(dir_anime_log,'ОШИБКА\n')
+                    for line in t:
+                        addfile(dir_anime_log,line)
+                    addfile(dir_anime_log,'\n')
+            tosite()
 
         #   abfb912f-0502-4c67-a7da-5afacbddd7ee    заказ аниме на основе
         #   68490923-e11a-4a88-8731-b74811e831ea    заказ аниме на втором
@@ -584,224 +681,224 @@ async def event_message(ctx):
         #   7257f8f9-f9d7-46b6-87bb-0be8feb5850e    скип аниме/игры
         #   303c8930-6972-4649-8129-012bf2ec396e    Заказ фильма/аниме фильма
     #   Запись всех сообщений в дневник (dmax = кол-во последних сообщений пользователя)
+    mesag = ctx.content.lower()
     if not 'fanjqiwehnqugvjklbanjikncvoiuquifo' in mesag:
-        tim = []
-        mess = []
-        i = -1
-        while i < dmax:
-            i+=1
-            tim.append(0)
-        i = -1
-        while i < dmax:
-            i+=1
-            mess.append('')
+        user = chan+'_'+autor
+        if not user in d:
+            d[user] = []
 
-        i = dmax
-        while i>1:
+        intime_now = time0(time_now)
+        mesw = re.sub('[!@#$%^&*(),.?<>]','',mesag)
+
+        dl[user] = time_now+' '+mesw
+
+        mess = d[user]
+        if len(mess)<dmax:
+            mess.append(time_now+' '+mesag)
+        elif len(mess)>=dmax:
+            mess.remove(mess[0])
+            mess.append(time_now+' '+mesag)
+        tim = []
+        i = -1
+        while i<len(mess)-1:
+            i+=1
+            tim.append(time0(mess[i]))
+        end = -1
+        i = len(mess)
+        while i>0 and end==-1:
             i-=1
-            if ctx.author.name+str(i-1) in d:
-                d[ctx.author.name+str(i)] = d[ctx.author.name+str(i-1)]
-        temp = ctx.content.lower()
-        t1 = re.sub('[!@#$%^&*(),.?<>]','',temp)
-        d[ctx.author.name+'0'] = time_now+' '+temp
-        dl[ctx.author.name] = time_now+' '+t1
-        #print(dl)
-        if df(dl,t1,time_now)>=5 and dconf[chan+'_b'] == '1' and temp!= '!play':
-            await ctx.channel.followers()
-            addfile(dir_chan_log,'Фолловмод включен''\n')
-            last['fol'+chan]=str(time_now)
+            t1 = intime_now-tim[i]
+            if t1<0:
+                t1 = 301
+            if t1>=300:
+                j = i+1
+                while j>0:
+                    j-=1
+                    mess.remove(mess[j])
+                end = 1
+
+        if df(dl,mesw,time_now,chan+'_')>=6 and mesag!= '!play':
+            if dconf[chan+'_b'] == '1':
+                await ctx.channel.followers()
+                last['fol'+chan]=str(time_now)
+            print('Включен фоловмод')
+            addfile(dir_chan_log,str(time_now)+'Фолловмод включен''\n')
             for key, value in dict(dl).items():
-                if value == temp:
+                if mesag in value:
                     del dl[key]
 
-        if last['fol'+chan]!='00 00 00' and dconf[chan+'_b'] == '1':
-            ti = time0(time_now)-time0(last['fol'+chan])
+        if last['fol'+chan]!='00 00 00':
+            ti = intime_now-time0(last['fol'+chan])
             if ti>=90 or ti<0:
-                await ctx.channel.followersoff()
-                addfile(dir_chan_log,'Фолловмод выключен''\n')
-                last['fol'+chan]='00 00 00'
+                if dconf[chan+'_b'] == '1':
+                    await ctx.channel.followersoff()
+                    last['fol'+chan]='00 00 00'
+                addfile(dir_chan_log,str(time_now)+'Фолловмод выключен''\n')
 
-        i = -1
-        while i<dmax-1:
-            i+=1
-            if ctx.author.name+str(i) in d:
-                tim[i] = time0(d[ctx.author.name+str(i)])
-                t = d[ctx.author.name+str(i)]
-                mess[i] = t[9:]
+        mute_time = 15
+        mutef = 0
+        muter = 0
+        muteflood = -1
+        muterep = -1
 
-        i = dmax
-        while i>1:
+        i = len(mess)
+        while i>0:
             i-=1
-            if tim[0]-tim[i] >=300 and tim[i]!=0:
-                if ctx.author.name+str(i) in d:
-                    del d[ctx.author.name+str(i)]
-                    tim[i] = 0
-                    mess[i] = ''
-
-        if ctx.author.name+str(1) in d:
-            mute_time = 15
-            mutef = 0
-            muter = 0
-            muterep = -1
-            muteflood = -1
-            maxcount = 0
-            counts = {}
-            tempm = '-19489×56'
-
-            i = -1
-            while i<dmax-1:
-                i+=1
-                if ctx.author.name+str(i+1) in d:
-                    if len(mess[i])<10 and tim[i]-tim[i+1]<4:
-                        if ctx.author.name+str(i+2) in d and tim[i]-tim[i+2]<7:
-                            mutef+=1
-                    if len(mess[i])<10 and tim[i]-tim[i+1]<5:
+            temp = mess[i]
+            temp = temp[9:]
+            if tim[i]-tim[i-1]>=0:
+                if len(temp)<10 and tim[i]-tim[i-1]<4:
+                    mutef+=1
+                    if i>=2 and tim[i]-tim[i-2]<7 and tim[i]-tim[i-2]>=0:
                         mutef+=1
-            if 'snivanov' in chan:
-                tempmuterep = 9
-            else:
-                tempmuterep = 7
+                if len(temp)<10 and tim[i]-tim[i-1]<5:
+                    mutef+=1
+        if 'snivanov' in chan:
+            tempmuterep = 13
+        else:
+            tempmuterep = 10
+        temp = mess[0]
+        temp = temp[9:]
+        if mutef == tempmuterep and len(temp)<10 and tim[0]-tim[1]<=8:
+            muteflood = 0
+        elif mutef > tempmuterep and len(temp)<10 and tim[0]-tim[1]<=8:
+            muteflood = 1
 
-            if mutef == tempmuterep and len(mess[0])<10 and tim[0]-tim[1]<=8:
-                muteflood = 0
-            elif mutef > tempmuterep and len(mess[0])<10 and tim[0]-tim[1]<=8:
-                muteflood = 1
 
-            i = -1
-            while i<dmax-1:
-                i+=1
-                j = i
-                if mess[i]!='':
-                    ti = mess[i].split(' ')
-                    ti1 = len(ti)
-                    ti = set(ti)
-                while j<dmax-1:
-                    j+=1
-                    if mess[j]!='':
-                        tj = mess[j].split(' ')
-                        tj1 = len(tj)
-                        tj = set(tj)
-                        t2 = list(set(ti) & set(tj))
-                        tt = max(tj1,ti1)
-                        if max(len(tj),len(ti))/min(tj1,ti1)<0.3:
-                            if tim[i]-tim[j]<=60:
-                                muter+=1
-                        if len(t2)/tt>=0.65 and len(tj)>=1:
-                            if tim[i]-tim[j]<=20:
-                                muter+=2
-                            elif tim[i]-tim[j]<=60:
-                                muter+=1
 
-            if mess[0]!='':
-                ti = mess[0].split(' ')
-                ti1 = len(ti)
-                ti = set(ti)
-            j = 0
-            while j<dmax-1:
-                j+=1
-                if mess[j]!='':
-                    tj = mess[j].split(' ')
-                    tj1 = len(tj)
-                    tj = set(tj)
-                    t2 = list(set(ti) & set(tj))
-                    tt = max(tj1,ti1)
-                    if max(len(tj),len(ti))/min(tj1,ti1)<0.3:
-                        if tim[i]-tim[j]<=60:
-                            muter+=1
-                    if len(t2)/tt>=0.65 and len(tj)>=1:
-                        if tim[i]-tim[j]<=5:
-                            muter+=3
-                        elif tim[i]-tim[j]<=25:
-                            muter+=2
-                        elif tim[i]-tim[j]<=60:
-                            muter+=1
+        i = len(mess)
+        i-=1
+        j = i
+        ti = mess[i].split(' ')
+        ti.remove(ti[0])
+        til = len(ti)
+        ti = set(ti)
+        while j>0:
+            j-=1
+            tj = mess[j].split(' ')
+            tj.remove(tj[0])
+            tjl = len(tj)
+            tj = set(tj)
 
-            if 'snivanov' in chan:
-                tempmuterep = 8
-            else:
-                tempmuterep = 6
-            if len(t2)<=3:
-                tempmuterep+=3
+            t2 = list(set(ti) & set(tj))
+            #print(t2)
+            tt = max(til,tjl)
+            tim_ij = tim[i]-tim[j]
+            if max(len(tj),len(ti))/min(tjl,til)<0.3:
+                if tim_ij<=60:
+                    muter+=1
+            if len(t2)/tt>=0.65 and len(tj)>=1:
+                if tim_ij<=5:
+                    muter+=3
+                elif tim_ij<=30:
+                    muter+=2
+                elif tim_ij<=60:
+                    muter+=1
 
-            if muter>=2:
-                t1 = mess[0].split(' ')
-                t3 = list(set(t2) & set(t1))
-                if muter==tempmuterep:
-                    muterep = 0
-                elif muter > tempmuterep:
-                    muterep = 1
-
-            if not ctx.author.name+'mf' in last:
-                last[ctx.author.name+'mf'] = 0
-
-            if mutef>last[ctx.author.name+'mf']:
-                last[ctx.author.name+'mf']=mutef
-            else:
-                last[ctx.author.name+'mf']=mutef
-                if muteflood == 1:
-                    muteflood = 0
-
-            if not ctx.author.name+'mr' in last:
-                last[ctx.author.name+'mr'] = 0
-
-            if muter>last[ctx.author.name+'mr']:
-                last[ctx.author.name+'mr']=muter
-            else:
-                last[ctx.author.name+'mr']=muter
-                if muterep == 1:
-                    muterep = 0
-
-            if not ctx.author.name+'p' in d:
-                d[ctx.author.name+'p'] = '00.00.00'
-
-            #print(d[ctx.author.name+'p'])
-            if time0(time_now)-time0(d[ctx.author.name+'p'])<=300 and muterep == 0:
-                muterep = -1
-            elif time0(time_now)-time0(d[ctx.author.name+'p'])>60 and muterep == 1:
+        if 'snivanov' in chan:
+            tempmuterep = 8
+        else:
+            tempmuterep = 6
+        if len(t2)<=3:
+            tempmuterep+=3
+        #print('muter = '+str(muter))
+        if muter>=2:
+            t1 = mess[0].split(' ')
+            t3 = list(set(t2) & set(t1))
+            if muter==tempmuterep:
                 muterep = 0
-            elif time0(time_now)-time0(d[ctx.author.name+'p'])<=300 and muteflood == 0:
-                muteflood = -1
-            elif time0(time_now)-time0(d[ctx.author.name+'p'])>60 and muteflood == 1:
+            elif muter > tempmuterep:
+                muterep = 1
+        if not ctx.author.name+'mf' in last:
+            last[ctx.author.name+'mf'] = 0
+
+        if mutef>last[ctx.author.name+'mf']:
+            last[ctx.author.name+'mf']=mutef
+        else:
+            last[ctx.author.name+'mf']=mutef
+            if muteflood == 1:
                 muteflood = 0
 
-            if muteflood == 1 or muterep == 1:
-                inp = open(mute_log,'r',encoding='utf8')
-                for line in inp:
-                    if ctx.author.name in line:
-                        mute_time = mute_time * 2
-                inp.close()
+        if not ctx.author.name+'mr' in last:
+            last[ctx.author.name+'mr'] = 0
 
-            if muteflood == 0 or muterep == 0:
-                if muteflood == 0:
-                    mess = 'Будешь так флудить, отхватишь таймаут @'
-                    res = 'флуд'
-                elif muterep == 0:
-                    mess = 'Ещё раз повторишь, отхватишь таймаут @'      
-                    res = 'повторы'          
-                if dconf[chan+'_f'] == '1' and antf == 1:
-                    await ctx.channel.send(f''+mess+ctx.author.name)
-                d[ctx.author.name+'p'] = time_now
-                print('Предупреждение '+ctx.author.name+' за '+res+' в '+time_now)
-                addfile(dir_chan_log,'Предупреждение '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
-                addfile(dir_user_log,'Предупреждение '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+        if muter>last[ctx.author.name+'mr']:
+            last[ctx.author.name+'mr']=muter
+        else:
+            last[ctx.author.name+'mr']=muter
+            if muterep == 1:
+                muterep = 0
 
-            if muteflood == 1 or muterep == 1:
-                if muteflood == 1:
-                    res = 'флуд'
-                elif muterep == 1:
-                    res = 'повторы'          
-                if dconf[chan+'_f'] == '1' and antf == 1:
-                    await ctx.channel.timeout(ctx.author.name, mute_time,'Узбагойся ('+res+')')
-                    d[ctx.author.name+'p'] = time_now
-                    i = dmax
-                while i>1:
-                    i-=1
-                    if ctx.author.name+str(i) in d:
-                        del d[ctx.author.name+str(i)]
-                d[ctx.author.name+'p'] = '00.00.00'
-                print('Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+' в '+time_now)
-                addfile(dir_chan_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
-                addfile(dir_user_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+        #print(d)
+        #print(mutef)
+        #print(muter)
+        if not ctx.author.name+'p' in d:
+            d[ctx.author.name+'p'] = '00.00.00'
+
+        #print(d[ctx.author.name+'p'])
+        if intime_now-time0(d[ctx.author.name+'p']+chan)<=300 and muterep == 0:
+            muterep = -1
+        elif intime_now-time0(d[ctx.author.name+'p']+chan)>60 and muterep == 1:
+            muterep = 0
+        elif intime_now-time0(d[ctx.author.name+'p']+chan)<=300 and muteflood == 0:
+            muteflood = -1
+        elif intime_now-time0(d[ctx.author.name+'p']+chan)>60 and muteflood == 1:
+            muteflood = 0
+
+        if muteflood == 1 or muterep == 1:
+            inp = open(mute_log,'r',encoding='utf8')
+            for line in inp:
+                if ctx.author.name in line:
+                    mute_time = mute_time * 2
+            inp.close()
+
+        if muteflood == 0 or muterep == 0:
+            if muteflood == 0:
+                mess = 'Будешь так флудить, отхватишь таймаут @'
+                res = 'флуд'
+            elif muterep == 0:
+                mess = 'Ещё раз повторишь, отхватишь таймаут @'      
+                res = 'повторы'          
+            if dconf[chan+'_f'] == '1' and antf == 1:
+                await ctx.channel.send(f''+mess+ctx.author.name)
+            d[ctx.author.name+'p'] = time_now
+            print('Предупреждение '+ctx.author.name+' за '+res+' в '+time_now)
+            addfile(dir_chan_log,'Предупреждение '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            addfile(dir_user_log,'Предупреждение '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            addfile(dir_bug_log,'Предупреждение '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            mesl = d[user]
+            i = len(mesl)
+            while i>0:
+                i-=1
+                addfile(dir_bug_log,mesl[i]+'\n')
+            addfile(dir_bug_log,'\n')
+
+
+        if muteflood == 1 or muterep == 1:
+            if muteflood == 1:
+                res = 'флуд'
+            elif muterep == 1:
+                res = 'повторы'          
+            if dconf[chan+'_f'] == '1' and antf == 1:
+                await ctx.channel.timeout(ctx.author.name, mute_time,'Узбагойся ('+res+')')
+                d[ctx.author.name+'p'+chan] = time_now
+                i = dmax
+            #while i>1:
+            #    i-=1
+            #    if ctx.author.name+str(i)+chan in d:
+            #        del d[ctx.author.name+str(i)+chan]
+            d[ctx.author.name+'p'+chan] = '00.00.00'
+            print('Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+' в '+time_now)
+            addfile(dir_chan_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            addfile(dir_user_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            addfile(dir_bug_log,'Мут '+ctx.author.name+' за '+res+' на '+str(mute_time)+'\n')
+            mesl = d[user]
+            i = len(mesl)
+            while i>0:
+                i-=1
+                addfile(dir_bug_log,mesl[i]+'\n')
+            addfile(dir_bug_log,'\n')
+            del d[user]
 
 #@bot.command(name='test')
 #async def test(ctx):
