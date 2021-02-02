@@ -121,6 +121,13 @@ def mreq(t1):
 def listedit(di,mes,com,nick = '-1859489484564'):
     j = '-1'
     if com!='добавить':
+        if len(mes.split(' '))==1:
+            tint = -1
+            try:
+                tint = int(mes)
+            except:
+                pass
+
         mes=mes.lower()
         mes = re.sub('[!@#$%^&*,.?()<>]','',mes)
     ti = mes.split(' ')
@@ -149,51 +156,63 @@ def listedit(di,mes,com,nick = '-1859489484564'):
                 #print(j)
 
     elif com == 'поднять':
-        i = -1
-        rr = -1
-        while i<len(l)-1 and rr!=1:
-            i+=1
-            t2 = re.sub('[!@#$%^&*,.?()<>]','',l[i])
-            t2 = t2.lower()
-            t2 = t2.replace('\n','')
-            tj = t2.split(' ')            
-            t3 = list(set(ti) & set(tj))
-            #print(set(ti))
-            #print(set(tj))
-            if set(ti)==set(t3) and i>=2:
-                j = i-1
-                l[i],l[i-1]=l[i-1],l[i]
-                rr = 1
-            elif set(ti)==set(t3) and i<=2 and i>=0:
-                j = -3
+        if tint>1 and tint<=len(l)-1:
+            l[tint],l[tint-1]=l[tint-1],l[tint]
+            j = tint-1
+        else:
+            i = -1
+            rr = -1
+            while i<len(l)-1 and rr!=1:
+                i+=1
+                t2 = re.sub('[!@#$%^&*,.?()<>]','',l[i])
+                t2 = t2.lower()
+                t2 = t2.replace('\n','')
+                tj = t2.split(' ')            
+                t3 = list(set(ti) & set(tj))
+                #print(set(ti))
+                #print(set(tj))
+                if set(ti)==set(t3) and i>=2:
+                    j = i-1
+                    l[i],l[i-1]=l[i-1],l[i]
+                    rr = 1
+                elif set(ti)==set(t3) and i<=2 and i>=0:
+                    j = -3
     elif com == 'опустить':
-        i = -1
-        rr = -1
-        while i<len(l)-1 and rr!=1:
-            i+=1
-            t2 = re.sub('[!@#$%^&*,.()?<>]','',l[i])
-            t2 = t2.lower()
-            t2 = t2.replace('\n','')
-            tj = t2.split(' ')
-            t3 = list(set(ti) & set(tj))
-            if set(ti)==set(t3) and not i==len(l)-1:
-                j = i+1
-                l[i],l[i+1]=l[i+1],l[i]
-                rr = 1
+        if tint>1 and tint<=len(l)-1:
+            l[tint],l[tint+1]=l[tint+1],l[tint]
+            j = tint+1
+        else:
+            i = -1
+            rr = -1
+            while i<len(l)-1 and rr!=1:
+                i+=1
+                t2 = re.sub('[!@#$%^&*,.()?<>]','',l[i])
+                t2 = t2.lower()
+                t2 = t2.replace('\n','')
+                tj = t2.split(' ')
+                t3 = list(set(ti) & set(tj))
+                if set(ti)==set(t3) and not i==len(l)-1:
+                    j = i+1
+                    l[i],l[i+1]=l[i+1],l[i]
+                    rr = 1
     elif com == 'удалить':
-        i = -1
-        rr = -1
-        while i<len(l)-1 and rr!=1:
-            i+=1
-            t2 = re.sub('[!@#$%^&*,().?<>]','',l[i])
-            t2 = t2.lower()
-            t2 = t2.replace('\n','')
-            tj = t2.split(' ')
-            t3 = list(set(ti) & set(tj))
-            if set(ti)==set(t3):
-                j = l[i].replace('\n','')
-                l.remove(l[i])
-                rr = 1
+        if tint>-1 and tint<=len(l)-1:
+            j = l[tint].replace('\n','')
+            l.remove(l[tint])
+        else:
+            i = -1
+            rr = -1
+            while i<len(l)-1 and rr!=1:
+                i+=1
+                t2 = re.sub('[!@#$%^&*,().?<>]','',l[i])
+                t2 = t2.lower()
+                t2 = t2.replace('\n','')
+                tj = t2.split(' ')
+                t3 = list(set(ti) & set(tj))
+                if set(ti)==set(t3):
+                    j = l[i].replace('\n','')
+                    l.remove(l[i])
+                    rr = 1
     elif com == 'добавить':
         l.append(mes+'\n')
         j = len(l)-1
@@ -205,3 +224,30 @@ def listedit(di,mes,com,nick = '-1859489484564'):
             inp.write(s)
         inp.close()
     return j
+
+def rew_conf(di,te,rew):
+    inp = open(di,'r',encoding='utf8')
+    t = inp.readlines()
+    inp.close()
+    #print(t)
+    inp = open(di,'w',encoding='utf8')
+    if rew+'\n' in t:
+        ret = 0
+        t.remove(rew+'\n')
+        i = -1
+        while i<len(t)-1:
+            i+=1
+            inp.write(t[i])
+    elif not rew in t:     
+        e = 0   
+        ret = 1
+        i = -1
+        while not te in t[i]:
+            i+=1
+            inp.write(t[i])
+        inp.write(rew+'\n')
+        while i<len(t)-1:
+            i+=1
+            inp.write(t[i])
+    inp.close()
+    return ret

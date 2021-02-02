@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Список аниме</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<html>
+<body style="background-color: rgb(51, 51, 51);">
