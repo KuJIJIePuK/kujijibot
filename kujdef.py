@@ -81,6 +81,7 @@ def confignore(di,ch,nick):
         inp.write(line)
     inp.close()
 
+
 def defelo(mesag,nik):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
     reg_url = 'https://faceitelo.net/player/'
@@ -120,9 +121,9 @@ def mreq(t1):
 
 def listedit(di,mes,com,nick = '-1859489484564'):
     j = '-1'
+    tint = -1
     if com!='добавить':
         if len(mes.split(' '))==1:
-            tint = -1
             try:
                 tint = int(mes)
             except:
@@ -225,15 +226,21 @@ def listedit(di,mes,com,nick = '-1859489484564'):
         inp.close()
     return j
 
-def rew_conf(di,te,rew):
+def rew_conf(di,te,rew,ch = '-',au = '-'):
     inp = open(di,'r',encoding='utf8')
     t = inp.readlines()
     inp.close()
     #print(t)
     inp = open(di,'w',encoding='utf8')
     if rew+'\n' in t:
+        i = -1
+        r=0
+        while i<len(t)-1 and r==0:
+            i+=1
+            if rew in t[i]:
+                t.remove(t[i])
+                r=1
         ret = 0
-        t.remove(rew+'\n')
         i = -1
         while i<len(t)-1:
             i+=1
@@ -245,7 +252,7 @@ def rew_conf(di,te,rew):
         while not te in t[i]:
             i+=1
             inp.write(t[i])
-        inp.write(rew+'\n')
+        inp.write(rew+' ch='+ch+' au='+au+'\n')
         while i<len(t)-1:
             i+=1
             inp.write(t[i])
