@@ -13,6 +13,7 @@ def addfile(di,m):
     inp.write(m)
     inp.close()
     return
+
 def coun(l,s,j):
     i = 0
     for s1 in l:
@@ -20,22 +21,18 @@ def coun(l,s,j):
             if not len(s1)>len(s)+j:
                 i+=1
     return i
+
 def df(d,s,tim,ch):
     i = 0
     for t in d:
-        #print(ch)
-        #print(t)
         if ch in t:
             te = d[t]
             te = te[9:]
-            #print(te+'  '+s)
             if te==s:
                 t1 = time0(tim)
                 t2 = time0(d[t])
-                #print(str(t1-t2))
                 if t1-t2<=5 and t1-t2>=0:
                     i+=1
-    #print(i)
     return i
 
 def confre(di,ch,r):
@@ -82,22 +79,20 @@ def confignore(di,ch,nick):
     inp.close()
 
 
-def defelo(mesag,nik):
+def html_finder(r_url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
-    reg_url = 'https://faceitelo.net/player/'
-    reg_url+=nik
-    req = Request(url=reg_url, headers=headers)
+    req = Request(url=r_url, headers=headers)
     try:
         html = urlopen(req).read()
         html = str(html)
-        t1 = re.findall(r'<td><strong>(\S+)</strong><br>',html)
-        return t1[0]
+        return(html)        
     except:
         return -1
 
 def mreq(t1):
     if 'youtu' in t1:
         if 'v=' in t1 :
+            print(t1)
             if not '?v=' in t1:
                 t2 = re.findall(r'v=([\w-]+)[&?]',t1)
                 t1 = t2[0]
@@ -232,7 +227,7 @@ def rew_conf(di,te,rew,ch = '-',au = '-'):
     inp.close()
     #print(t)
     inp = open(di,'w',encoding='utf8')
-    if rew+'\n' in t:
+    if any(rew in s for s in t):
         i = -1
         r=0
         while i<len(t)-1 and r==0:
@@ -245,7 +240,7 @@ def rew_conf(di,te,rew,ch = '-',au = '-'):
         while i<len(t)-1:
             i+=1
             inp.write(t[i])
-    elif not rew in t:     
+    else:     
         e = 0   
         ret = 1
         i = -1

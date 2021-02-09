@@ -1,9 +1,10 @@
 import time
 import os
-from kujdef import *
-from hht import *
+from kuji_defs import *
+from kuji_http import *
 
-def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,time_now):
+def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,time_now):
+    mesag = mes.lower()
     au = aut.lower()
     intime_now = time0(time.strftime('%H:%M:%S', time.localtime()))
     m1 = 'Ошибка'
@@ -11,7 +12,7 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
         if mesag == 'bot':
             m1 = 'Команды: "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
             if is_str == 1:
-                m1 = 'Команды: "!add", "!del", "!swap", "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
+                m1 = 'Команды: "!rename", "!up", "!add", "!del", "!swap", "help", "botf" , "botm" , "botb", "botelo", "boti "+ник'
             return m1
         if mesag.startswith('help'):
             las = intime_now-time0(last['help'+chan])
@@ -61,7 +62,7 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                 return m1
         doc = 0
         if mesag == 'botelo':
-            ch = chan+'_elo'            
+            ch = chan+'_elo'
             m1 = '!elo '
             doc = 1
 
@@ -121,33 +122,58 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                 if dconf[chan+'_elo']=='1':
                     m1 += ' !elo'
                 if os.path.isfile(dir_list):
-                    m1+=' !список, !swap, "!мои"'
+                    m1+=' !список, "!мои", !swap, !rename'
                 if m1 == 'Команды:':
                     m1 = 'Доступных на канале команд, нет'
                 last['bot'+chan] = time.strftime('%H:%M:%S', time.localtime())
             return m1
 
+
+    if mesag.startswith('!add '):
+        if is_str==1:
+            if not os.path.exists(dir_list.replace('/list.txt','')):
+                os.makedirs(dir_list.replace('/list.txt',''))
+            if not os.path.isfile(dir_list):
+                inp = open(dir_list,'w',encoding='utf8')
+                inp.close()
+            mes = mesag.replace('!add ','')
+            if not aut in mes:
+                mes+=' ('+aut+')'
+            li = listedit(dir_list,mes,'добавить')
+            tosite(chan)
+            addfile(dir_list_log,time_now+' '+aut+': '+mesag+' ('+'добавить'+')\n')
+            addfile(dir_list_log,mes+' '+'добавлено'+'\n')
+            m1 = ' '+mes.replace('\n','')+' добавлено'
+            return m1
     if os.path.isfile(dir_list):
         if is_str==1:
             if mesag.startswith('!del '):
                 li = listedit(dir_list,mesag.replace('!del ',''),'удалить')
-                tosite(chan)                
+                tosite(chan)
                 addfile(dir_list_log,time_now+' '+aut+': '+mesag+' ('+'удалить'+')\n')
-                addfile(dir_list_log,li+' '+'удалено'+'\n')
+                li = str(li)
                 if li!='-1':
                     m1 = ' '+li+' удалено'
+                    addfile(dir_list_log,li+' '+'удалено\n')
                 else:
                     m1 = 'В списке не найдено!'
-
+                    addfile(dir_list_log,'Не найдено\n')
                 return m1
-            if mesag.startswith('!add '):
-                li = listedit(dir_list,mesag.replace('!add ',''),'добавить')
-                tosite(chan)                
-                addfile(dir_list_log,time_now+' '+aut+': '+mesag+' ('+'добавить'+')\n')
-                addfile(dir_list_log,mesag.replace('!add ','')+' '+'добавлено'+'\n')
-                m1 = ' '+mesag.replace('!add ','')+' добавлено'
+            if mesag.startswith('!up '):
+                li = listedit(dir_list,mesag.replace('!up ',''),'поднять')
+                tosite(chan)
+                inp = open(dir_list,'r',encoding='utf8')
+                t = inp.readlines()
+                inp.close()
+                addfile(dir_list_log,time_now+' '+aut+': '+mesag+' ('+'поднять'+')\n')
+                if li!='-1':
+                    na = t[li].replace('\n','')
+                    m1 = ' '+na+' поднято'
+                    addfile(dir_list_log,na+' '+'поднято\n')
+                else:
+                    m1 = 'В списке не найдено!'
+                    addfile(dir_list_log,'Не найдено\n')
                 return m1
-
         if mesag.startswith('!swap'):
             doswap = 0
             las = intime_now-time0(last['swap'+chan])
@@ -191,7 +217,7 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                         for l in t:
                             inp.write(l)
                         inp.close()
-                        tosite(chan)                        
+                        tosite(chan)
                         addfile(dir_list_log,time_now+' '+aut+': '+mesag+' (swap)\n')
                         addfile(dir_list_log,'Готово\n')
                         m1 = 'Готово @'+au
@@ -200,7 +226,7 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                         if is_serv==0:
                             print(au)
                             print(t[ti])
-                            print(t[tj])                        
+                            print(t[tj])
                         addfile(dir_list_log,time_now+' '+aut+': '+mesag+' (swap)\n')
                         addfile(dir_list_log,'чужой заказ\n')
                         m1 = 'Менять местами можно только свои заказы @'+au
@@ -211,6 +237,87 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                     m1 = 'Пример: "!swap 1 2" @'+au
                     return m1
                 last['swap'+chan] = time_now
+        if mesag.startswith('!rename'):
+            m1 = 'Ошибка'
+            doren = 0
+            nome = -3
+            las = intime_now-time0(last['renam'+chan])
+            mes = mes.replace('!rename','')
+            if len(mes)<=1:
+                m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                last['renam'+chan] = time_now
+                addfile(dir_list_log,'Ошибка\n')
+                return m1
+            else:
+                nom = mes.split(' ')
+                nom.remove('')
+                try:
+                    nome = nom[0]
+                except:
+                    m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                    last['renam'+chan] = time_now
+                    addfile(dir_list_log,'Ошибка\n')
+                    return m1
+                if nome != -3:
+                    mes = mes.replace(' '+str(nome)+' ','')
+                    addfile(dir_list_log,time_now+' '+aut+': '+mesag+' (rename)\n')
+                    if is_str == 1:
+                        doren = 1
+                    if las > 10 or las < 0:
+                        doren = 1
+                    if doren == 1:
+                        try:
+                            inp = open(dir_list,'r',encoding='utf8')
+                            t = inp.readlines()
+                            inp.close()
+                        except:
+                            m1 = 'Ошибка'
+                            return m1
+                        li = -3
+                        try:
+                            li = int(nome)
+                        except:
+                            li = listedit(dir_list,str(nome),'найти')
+                            li = li[0]
+                        addfile(dir_list_log,mes+'\n')
+                        if li == -3:
+                            m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                            last['renam'+chan] = time_now
+                            addfile(dir_list_log,'Ошибка\n')
+                            return m1
+                        else:
+                            addfile(dir_list_log,t[li])
+                            print(t[li].lower())
+                            print(au)
+                            if au in t[li].lower() or is_str==1:
+                                doren = 0
+                                if li>0:
+                                    doren = 1
+                                elif is_str==1:
+                                    doren = 1
+                                if doren == 1:
+                                    if not aut in mes:
+                                        mes+=' ('+aut+')'
+                                    if 'фильм' in t[li].lower() and not 'фильм' in mes.lower():
+                                        mes = 'Фильм '+mes
+                                    mes+='\n'
+                                    t[li]=mes
+                                    inp = open(dir_list,'w',encoding='utf8')
+                                    for s in t:
+                                        inp.write(s)
+                                    inp.close()
+                                    tosite(chan)
+                                    m1 = 'Готово'
+                                    addfile(dir_list_log,t[li])
+                                    addfile(dir_list_log,'Готово\n')
+                                elif doren == 0:
+                                    m1 = 'Нельзя менять текущий заказ'
+                                    addfile(dir_list_log,'Ошибка\n')
+                                last['renam'+chan] = time_now
+                            elif not au in t[li].lower():
+                                m1 = 'Нельзя менять чужой заказ'
+                                addfile(dir_list_log,'Чужой заказ\n')
+                    return m1
 
         if mesag.startswith('!list') or mesag.startswith('!список') or mesag.startswith('!anime') or mesag == '!мои' :
             las = intime_now-time0(last['anim'+chan])
@@ -292,9 +399,13 @@ def bot_com(mesag,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dcon
                     nik = t2[0]
                 except:
                     pass
-                delo = defelo(mesag,nik)
-                if delo!=-1:
-                    m1 = ' Elo '+nik+' = '+str(delo)
+                r_url = 'https://faceitelo.net/player/'+nik
+                html = html_finder(r_url)
+                t1 = []
+                if html!=-1:
+                    t1 = re.findall(r'<td><strong>(\S+)</strong><br>',html)
+                if len(t1)>0:
+                    m1 = ' Elo '+nik+' = '+str(t1[0])
                 else:
                     m1 = ' Ошибка, ник не найден'
                 last['elo'+chan] = time_now

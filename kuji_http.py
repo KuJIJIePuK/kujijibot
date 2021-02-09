@@ -2,6 +2,7 @@ import os
 
 def tosite(ch = 'test'):
 	defdi = 'lists/def.txt'
+	defbot = 'lists/def_bot.txt'
 	inp = open(defdi,'r',encoding='utf8')
 	t = inp.readlines()
 	inp.close()
@@ -39,5 +40,10 @@ def tosite(ch = 'test'):
 		m+='Заказов сейчас нет'
 		m+='</font></p>\n'
 		out.write(m)
-	out.write('\n</html>\n</body>\n</html>\n')
+	inp = open(defbot,'r',encoding='utf8')
+	t = inp.readlines()
+	inp.close()
+	for s in t:
+		out.write(s)
+	#out.write('\n</html>\n</body>\n</html>\n')
 	out.close()
