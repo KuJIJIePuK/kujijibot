@@ -4,11 +4,14 @@ import time
 import os
 from twitchio.ext import commands
 from urllib.request import urlopen, Request
+
 from variables import *
+
 from kuji_http import *
 from kuji_defs import *
 from kuji_commands import *
 from kuji_rewards import *
+import itertools
 
 bot = commands.Bot(
     irc_token=token,
@@ -20,9 +23,47 @@ bot = commands.Bot(
 
 creator = 'kujijiepuk'
 
+dconf = {}
+d = {}
+dl = {}
+last = {}
+dmax = 8
+
 list_bot = ['streamelements','moobot','nightbot','mikuia','wizebot','kujijibot','nyan_rab','rutonybot','mirrobot']
 list_com = ['!rename','help','bot','botb','botf','botm','botelo','boti','!anime','!список','!list','!del','!add','!elo','!swap','!мои']
 
+list_ban = []
+
+list_banwords_0 = ['пидор','пидар','педик','пидр']
+list_banwords_1 = ['даун','нигер','нига','нигир']
+
+
+list_white_0 = ['педикюр']
+list_white_1 = ['нигерия','нигерий','дауншифтер']
+#for ban in list_banwords_0:
+#    a = []
+    #print(ban)
+#    for ch in ban:
+#        a.append(Lett[ch])
+#    for l in itertools.product(*a):
+#        tban = ''.join(l)
+#        if not tban in list_ban:
+#            list_ban.append(tban)
+list_f_0 = []
+for s in list_banwords_0:
+    if s[0] in Lett:
+        for w in Lett[s[0]]:
+            list_f_0.append(w[0])
+    else:
+        list_f_0.append(s[0])
+
+list_f_1 = []
+for s in list_banwords_1:
+    if s[0] in Lett:
+        for w in Lett[s[0]]:
+            list_f_1.append(w[0])
+    else:
+        list_f_1.append(s[0])
 
 nakrlist = []
 nakrlist.append('clck follow')
@@ -33,16 +74,13 @@ nakrlist.append('plsss open')
 nakrlist.append('streаmdеtаilsbot')
 nakrlist.append('зайдите стрим')
 nakrlist.append('ez raccattack ezfollow https://tinyurl.com/ezfollow')
+nakrlist.append('buy followers')
 i = -1
 while i<len(nakrlist)-1:
     i+=1
     nakrlist[i]=set(nakrlist[i].split(' '))
 
-dconf = {}
-d = {}
-dl = {}
-last = {}
-dmax = 8
+
 
 dirrew = 'rewards.cfg'
 dirconf = 'bot.cfg'
@@ -154,8 +192,6 @@ async def event_ready():
         for t in list_init_last:
             if t+chan not in last:
                 last[t+chan] = '00 00 00'
-        
-
 
 
 @bot.event
@@ -191,6 +227,8 @@ async def event_message(ctx):
     author = author_disp.lower()
     mes = ctx.content
     mesag = ctx.content.lower()
+
+
 
     U_m = author + ': ' + ctx.content
 
@@ -231,7 +269,12 @@ async def event_message(ctx):
 
     if chan!='melharucos' and chan!='olyashaa':
         addfile(dir_user_log,time_now+' '+U_m+'\n')
-    addfile(dir_chan_log,time_now+' '+U_m+'\n')    
+    elif author == 'kujijibot':
+        addfile(dir_user_log,time_now+' '+U_m+'\n')
+    addfile(dir_chan_log,time_now+' '+U_m+'\n')
+
+    
+
 
 
     if author == creator:
@@ -251,15 +294,18 @@ async def event_message(ctx):
             t1 = mesag.replace('мут ','')
             t2 = t1.split(' ')
             if '@' in t2[0]:
-                nik = t2[0].replace('@','')
-                t3 = t1.replace('@'+nik+' ','')
-                t2 = t3.split(' ')
-                t3 = t3.replace(t2[0]+' ','')
-                try:
-                    mtime = int(t2[0])
-                except:
-                    mtime = 600
-                await ctx.channel.timeout(nik, mtime,t3)
+                t2[0] = t2[0].replace('@','')
+            nik = t2[0]
+            t3 = t1.replace(nik+' ','')
+            t2 = t3.split(' ')            
+            if t3.startswith(' '):
+                t3 = t3.replace(' ','')
+            try:
+                mtime = int(t2[0])
+                t3 = t3.replace(t2[0],'')
+            except:
+                mtime = 600
+            await ctx.channel.timeout(nik, mtime,t3)
 
     i = -1
     r = 0
@@ -270,7 +316,7 @@ async def event_message(ctx):
             if author not in list_bot:
                 m1 = bot_com(mes,author_disp,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,time_now)
                 if m1!='Ошибка':
-                    await ctx.channel.send(f''+m1+' @'+author)
+                    await ctx.channel.send(f''+m1)
                     r = 1
 
     if is_mod == 1 or author in list_bot:
@@ -278,34 +324,88 @@ async def event_message(ctx):
     if  author in dconf[chan+'_i']:
         antf = 0
     act = ''
-    mt = re.sub('[!@#$%^&*,.?()<>]','',mesag)
-    mt = mt.split(' ')
-    if 'пидор' in mt or 'pidor' in mt or 'пидар' in mt or 'pidar' in mt or 'пидарас' in mt or 'педик' in mt or 'Пiдо₽@с' in mt:
-        await ctx.channel.timeout(author, 600,'гц')
-        act = ' Мут '
+
+    #result = re.sub('[%&,.<>()?]','',mes)
+    result = re.sub('[%&,.<>()?-]','',mes)
+    result = result.split(' ')
+    while '' in result:
+        result.remove('')
+
+    temp = raspoz_word(result,list_banwords_0,list_f_0,Lett)
+    neban = 0
+
+    
+    if temp != 0 and neban == 0:
+        for wor in list_white_0:
+            if wor in temp:
+                neban = 1
+        if chan!='kujijiepuk':
+            await ctx.channel.timeout(author, 600,'гц')
+        else:
+            await ctx.channel.timeout(author, 3,'гц')
+        act = 'Мут '
         res = ' за запретку в '
+        stop = 1
+        #except:
+        #    pass
+    temp = raspoz_word(result,list_banwords_1,list_f_1,Lett)
+    neban = 0    
+    if temp != 0 and neban == 0:
+        for wor in list_white_1:
+            if wor in temp:
+                neban = 1
+        if chan!='kujijiepuk':
+            try:
+                await ctx.channel.timeout(author, 60,'э чо твориш')
+            except:
+                pass
+        else:
+            try:
+                await ctx.channel.timeout(author, 2,'э чо твориш')
+            except:
+                pass
+        act = 'Мут '
+        res = ' за запретку в '
+        stop = 1
+
+    #mt = re.sub('[!@#$%^&*,.?()<>]','',mesag)
+    #mt = mt.split(' ')
+    mt = result
+    #if 'пидор' in mt or 'pidor' in mt or 'пидар' in mt or 'pidar' in mt or 'пидарас' in mt or 'педик' in mt or 'Пiдо₽@с' in mt:
+    #    await ctx.channel.timeout(author, 600,'гц')
+    #    act = ' Мут '
+    #    res = ' за запретку в '
         
-    elif 'даун' in mt or 'нигер' in mt or 'дауны' in mt or 'даунов' in mt or 'нигир' in mt:
-        await ctx.channel.timeout(author, 300,'э чо твориш')
-        act = ' Мут '
-        res = ' за запретку в '
+    #if 'даун' in mt or 'нигер' in mt or 'дауны' in mt or 'даунов' in mt or 'нигир' in mt:
+    #    await ctx.channel.timeout(author, 60,'э чо твориш')
+    #    act = 'Мут '
+    #    res = ' за запретку в '
+
 
     if not 'классные зpители' in mesag and not 'веди диалог' in mesag:
         setmes = mesag.lower()
         setmes = re.sub('[!@#$%^&*,.?()<>]','',setmes)
         setmes = set(setmes.split(' '))
         for t in nakrlist:
-            t2 = list(t & set(setmes))
+            t2 = list(t & set(setmes))            
             if len(t2)/len(t)>0.65:
                 await ctx.channel.timeout(author, 600,'Реклама?')
-                act = ' Мут '
+                act = 'Мут '
                 res = ' за рекламу в '
+    if act =='':
+        if 'clck' in mesag and 'follow' in mesag:
+            print(mesag)
+            await ctx.channel.timeout(author, 600,'Реклама?')
+            act = 'Мут '
+            res = ' за рекламу в '
 
     if act != '':
         if is_serv == 0:
-            print(author+act+res+time_now)
+            print(author+' '+act+res+time_now)
         addfile(dir_chan_log,act+author+res+time_now+'\n')
-        addfile(dir_user_log,act+author+res+time_now+'\n')
+        addfile(dir_user_log,act+author+res+time_now+'\n')        
+        addfile(dir_bug_log,act+author+res+time_now+'\n')
+        addfile(dir_bug_log,time_now+' '+U_m+'\n')
     
 
     if 'bot_init' in mesag:
@@ -427,7 +527,7 @@ async def event_message(ctx):
                 if dconf[chan+'_b'] == '1':
                     await ctx.channel.followersoff()
                     last['fol'+chan]='00 00 00'
-                addfile(dir_chan_log,str(time_now)+'Фолловмод выключен''\n')
+                    addfile(dir_chan_log,str(time_now)+'Фолловмод выключен''\n')
 
         mute_time = 15
         mutef = 0

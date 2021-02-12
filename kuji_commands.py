@@ -47,16 +47,16 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 temp = temp.replace(' ','')
             nick = temp.lower()
             if len(nick)<=1 or len(t1)>1:
-                m1 = 'Ошибка, попробуйте ещё раз'
+                m1 = 'Ошибка, попробуйте ещё раз'+' @'+au
                 return m1
             else:
                 templ = dconf[chan+'_i']
                 if not nick in templ:
                     templ.append(nick)
-                    m1 = nick+' добавлен в список игнора антифлуда'
+                    m1 = nick+' добавлен в список игнора антифлуда'+' @'+au
                 else:
                     templ.remove(nick)
-                    m1 = nick+' удалён из списка игнора антифлуда'
+                    m1 = nick+' удалён из списка игнора антифлуда'+' @'+au
                 ch = chan+'_i'
                 confignore(dirconf,ch,nick)
                 return m1
@@ -76,7 +76,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 temp = temp.replace(' ','')
             nick = temp.lower()
             if len(nick)<=1 or len(t1)>1:
-                m1 = 'Ошибка, попробуйте ещё раз'
+                m1 = 'Ошибка, попробуйте ещё раз'+' @'+au
                 return m1
             else:
                 ch = 'elo_'+chan
@@ -88,7 +88,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                         templ.remove(t1[0])
                     dconf['elo_'+chan].append(nick)
                     confignore(dirconf,ch,nick)
-                    m1 = nick+' добавлен как стандарт в !elo'
+                    m1 = nick+' добавлен как стандарт в !elo'+' @'+au
                     return m1
         if mesag == 'botf':
             ch = chan+'_f'
@@ -111,7 +111,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 dconf[ch] = '1'
                 stat = 'включен'
             confre(dirconf,ch,dconf[ch])
-            m1+=stat
+            m1+=stat+' @'+au
             return m1
 
     else:
@@ -126,6 +126,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 if m1 == 'Команды:':
                     m1 = 'Доступных на канале команд, нет'
                 last['bot'+chan] = time.strftime('%H:%M:%S', time.localtime())
+            m1+=' @'+au
             return m1
 
 
@@ -141,9 +142,9 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 mes+=' ('+aut+')'
             li = listedit(dir_list,mes,'добавить')
             tosite(chan)
-            addfile(dir_list_log,time_now+' '+aut+': '+mesag+' ('+'добавить'+')\n')
+            addfile(dir_list_log,time_now+' '+aut+': '+mes+' ('+'добавить'+')\n')
             addfile(dir_list_log,mes+' '+'добавлено'+'\n')
-            m1 = ' '+mes.replace('\n','')+' добавлено'
+            m1 = ' '+mes.replace('\n','')+' добавлено'+' @'+au
             return m1
     if os.path.isfile(dir_list):
         if is_str==1:
@@ -158,6 +159,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 else:
                     m1 = 'В списке не найдено!'
                     addfile(dir_list_log,'Не найдено\n')
+                m1+=' @'+au
                 return m1
             if mesag.startswith('!up '):
                 li = listedit(dir_list,mesag.replace('!up ',''),'поднять')
@@ -173,6 +175,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 else:
                     m1 = 'В списке не найдено!'
                     addfile(dir_list_log,'Не найдено\n')
+                m1+=' @'+au
                 return m1
         if mesag.startswith('!swap'):
             doswap = 0
@@ -187,7 +190,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                     t = inp.readlines()
                     inp.close()
                 except:
-                    m1 = 'Ошибка'
+                    m1 = 'Ошибка'+' @'+au
                     return m1
                 er = 0
                 t1 = mesag.replace('!swap ','')
@@ -244,7 +247,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
             las = intime_now-time0(last['renam'+chan])
             mes = mes.replace('!rename','')
             if len(mes)<=1:
-                m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'+' @'+au
                 last['renam'+chan] = time_now
                 addfile(dir_list_log,'Ошибка\n')
                 return m1
@@ -254,7 +257,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 try:
                     nome = nom[0]
                 except:
-                    m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                    m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'+' @'+au
                     last['renam'+chan] = time_now
                     addfile(dir_list_log,'Ошибка\n')
                     return m1
@@ -271,7 +274,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                             t = inp.readlines()
                             inp.close()
                         except:
-                            m1 = 'Ошибка'
+                            m1 = 'Ошибка'+' @'+au
                             return m1
                         li = -3
                         try:
@@ -281,7 +284,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                             li = li[0]
                         addfile(dir_list_log,mes+'\n')
                         if li == -3:
-                            m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'
+                            m1 = 'Чтобы изменить название: !rename + номер или ОДНО слово из названия'+' @'+au
                             last['renam'+chan] = time_now
                             addfile(dir_list_log,'Ошибка\n')
                             return m1
@@ -311,11 +314,11 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                                     addfile(dir_list_log,t[li])
                                     addfile(dir_list_log,'Готово\n')
                                 elif doren == 0:
-                                    m1 = 'Нельзя менять текущий заказ'
+                                    m1 = 'Нельзя менять текущий заказ'+' @'+au
                                     addfile(dir_list_log,'Ошибка\n')
                                 last['renam'+chan] = time_now
                             elif not au in t[li].lower():
-                                m1 = 'Нельзя менять чужой заказ'
+                                m1 = 'Нельзя менять чужой заказ'+' @'+au
                                 addfile(dir_list_log,'Чужой заказ\n')
                     return m1
 
@@ -344,7 +347,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                                 print(nom)
                             nom = ' ('+str(t1)+'/'+str(len(t)-1)+')'
                             t2 += t[t1].replace('\n','')+' '+nom+'; '
-                        m1 = t2
+                        m1 = t2+' @'+au
                         return m1
                     else:
                         m1 = 'Сейчас нет ваших заказов @'+au
@@ -374,12 +377,18 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                     elif t2 == -2:
                         li = listedit(dir_list,t1,'найти')
                         if li!='-1':
-                            m1 = ' '+t[int(li[0])]+' Сейчас под номером ('+str(int(li[0]))+'/'+str(len(t)-1)+')'
+                            m1 = ''
+                            for t1 in li:
+                                nom = ' ('+str(t1)+'/'+str(len(t)-1)+')'
+                                m1 += t[t1].replace('\n','')+' '+nom+'; '
+                            #m1 = ' '+t[int(li[0])]+' Сейчас под номером ('+str(int(li[0]))+'/'+str(len(t)-1)+')'
+                            #m1 = m1+' @'+au
                         else:
                             m1 = ' Такое название не найдено'
                     elif t2<0:
                         m1 = ' Попробуйте ввести номер больше -_-'                    
                 last['anim'+chan] = time_now
+                m1+=' @'+au
                 return m1
 
     if mesag.startswith('!elo'):
@@ -409,6 +418,7 @@ def bot_com(mes,aut,chan,is_mod,is_str,last,dir_list,dir_list_log,dirconf,dconf,
                 else:
                     m1 = ' Ошибка, ник не найден'
                 last['elo'+chan] = time_now
+                m1+=' @'+au
                 return m1
 
     return m1
