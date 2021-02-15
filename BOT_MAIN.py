@@ -11,7 +11,8 @@ from kuji_http import *
 from kuji_defs import *
 from kuji_commands import *
 from kuji_rewards import *
-import itertools
+from kuji_sec import *
+#import itertools
 
 bot = commands.Bot(
     irc_token=token,
@@ -29,17 +30,13 @@ dl = {}
 last = {}
 dmax = 8
 
-list_bot = ['streamelements','moobot','nightbot','mikuia','wizebot','kujijibot','nyan_rab','rutonybot','mirrobot']
-list_com = ['!rename','help','bot','botb','botf','botm','botelo','boti','!anime','!список','!list','!del','!add','!elo','!swap','!мои']
+list_not_log = ['melharucos','olyashaa','y0nd']
+
+list_bot = ['moobot','nightbot','mikuia','wizebot','kujijibot','nyan_rab','rutonybot','mirrobot','ananonymouscheerer']
+list_com = ['botsp','!rename','help','bot','botb','botf','botm','botelo','boti','!anime','!список','!list','!del','!add','!elo','!swap','!мои']
 
 list_ban = []
 
-list_banwords_0 = ['пидор','пидар','педик','пидр']
-list_banwords_1 = ['даун','нигер','нига','нигир']
-
-
-list_white_0 = ['педикюр']
-list_white_1 = ['нигерия','нигерий','дауншифтер']
 #for ban in list_banwords_0:
 #    a = []
     #print(ban)
@@ -72,6 +69,7 @@ nakrlist.append('подними стрим')
 nakrlist.append('pleace youtube')
 nakrlist.append('plsss open')
 nakrlist.append('streаmdеtаilsbot')
+nakrlist.append('зайди стрим')
 nakrlist.append('зайдите стрим')
 nakrlist.append('ez raccattack ezfollow https://tinyurl.com/ezfollow')
 nakrlist.append('buy followers')
@@ -172,7 +170,7 @@ async def event_ready():
     for chan in bot.initial_channels:
         chan = chan.replace('#','')
         print(f'MainBot Подключился к '+chan)
-        list_init_conf = ['_f','_b','_m','_elo']
+        list_init_conf = ['_f','_b','_m','_elo','_spoil']
         for t in list_init_conf:
             ch = chan+t
             if ch not in dconf:
@@ -188,7 +186,7 @@ async def event_ready():
             dconf[ch] = []
             confignore(dirconf,ch,'kujijibot')
 
-        list_init_last = ['elo','sr','sk','fol','bot','help','anim','swap','renam']
+        list_init_last = ['elo','sr','sk','fol','bot','help','anim','swap','renam','spoil']
         for t in list_init_last:
             if t+chan not in last:
                 last[t+chan] = '00 00 00'
@@ -267,7 +265,7 @@ async def event_message(ctx):
     mute_log = dir_chan+'MUTE_BAN LOG '+tem+'.txt'
     dir_bug_log = dir_chan+'MUTE BUG LOG '+tem+'.txt'
 
-    if chan!='melharucos' and chan!='olyashaa':
+    if chan not in list_not_log:
         addfile(dir_user_log,time_now+' '+U_m+'\n')
     elif author == 'kujijibot':
         addfile(dir_user_log,time_now+' '+U_m+'\n')
@@ -326,12 +324,66 @@ async def event_message(ctx):
     act = ''
 
     #result = re.sub('[%&,.<>()?]','',mes)
-    result = re.sub('[%&,.<>()?-]','',mes)
+    result = re.sub('[%&,.<>()?⠀⌜-]','',mes)
     result = result.split(' ')
     while '' in result:
         result.remove('')
+    #t = ''.join(result)
+    #res = [t]
+
+    
+    spoil = 0
+    j = 0
+    list_spoiler = ['сезон','сери']
+    temp = rasp_full(result,list_spoiler,Lett)
+    if temp != 0:
+        spoil = 1
+
+    list_spoiler = ['съедят','съест','умрёт','выживет','убьёт','получит','выиграет','убьют','станет','станут','дохнет','сдела','будет']
+    for t in list_spoiler:
+        list_temp = [t]
+        temp = rasp_full(result,list_temp,Lett)
+        if temp != 0:
+            j+=1
+
+    if spoil == 1 and j>=1:
+        if dconf[chan+'_spoil'] == '1':
+            if chan!='kujijiepuk':
+                m_time = 600
+            else:
+                m_time = 3
+            act = 'Мут '
+            res = ' за спойлер в '
+            comm = 'спойлер?'
+            if ctx.author.reward != 'Empty':
+                ctx.author.reward = 'Empty'
+        addfile('Rasp.txt','СПОЙЛЕР: '+mes+'\n\n')
+
 
     temp = raspoz_word(result,list_banwords_0,list_f_0,Lett)
+    if temp!= 0:
+        addfile('Rasp.txt',temp+'\n\n')
+
+    
+    temp_w = rasp_full(result,list_banwords_0,Lett)
+    temp_white = rasp_full(result,list_white_0,Lett)
+    if temp_w!=0 and temp_white==0:
+        if chan!='kujijiepuk':
+            m_time = 600
+        else:
+            m_time = 3
+        act = 'Мут '
+        res = ' за запретку в '
+        comm = 'гц'
+        if ctx.author.reward != 'Empty':
+            ctx.author.reward = 'Empty'
+        stop = 1
+
+    if temp_white==0 and temp_w!=0:
+        for w in temp_w:
+            addfile('Rasp.txt',w+' ')
+        addfile('Rasp.txt','\n\n')
+
     neban = 0
 
     
@@ -340,34 +392,55 @@ async def event_message(ctx):
             if wor in temp:
                 neban = 1
         if chan!='kujijiepuk':
-            await ctx.channel.timeout(author, 600,'гц')
+            m_time = 600
         else:
-            await ctx.channel.timeout(author, 3,'гц')
+            m_time = 3
         act = 'Мут '
         res = ' за запретку в '
+        comm = 'гц'
+        if ctx.author.reward != 'Empty':
+            ctx.author.reward = 'Empty'
         stop = 1
         #except:
         #    pass
     temp = raspoz_word(result,list_banwords_1,list_f_1,Lett)
-    neban = 0    
-    if temp != 0 and neban == 0:
-        for wor in list_white_1:
-            if wor in temp:
-                neban = 1
+    if temp!= 0:
+        addfile('Rasp.txt',temp+'\n\n')
+    temp_w = rasp_full(result,list_banwords_1,Lett)
+    temp_white = rasp_full(result,list_white_1,Lett)
+    if temp_w!=0 and temp_white==0:
         if chan!='kujijiepuk':
-            try:
-                await ctx.channel.timeout(author, 60,'э чо твориш')
-            except:
-                pass
+            m_time = 600
         else:
-            try:
-                await ctx.channel.timeout(author, 2,'э чо твориш')
-            except:
-                pass
+            m_time = 3
         act = 'Мут '
         res = ' за запретку в '
+        comm = 'гц'
+        if ctx.author.reward != 'Empty':
+            ctx.author.reward = 'Empty'
         stop = 1
+    if temp_white==0 and temp_w!=0:
+        for w in temp_w:
+            addfile('Rasp.txt',w+' ')
+        addfile('Rasp.txt','\n')
+    if act == '':
+        neban = 0    
+        if temp != 0 and neban == 0:
+            for wor in list_white_1:
+                if wor in temp:
+                    neban = 1
+            if chan!='kujijiepuk':
+                m_time = 30
+            else:
+                m_time = 2
+            comm = 'э чо твориш'
+            act = 'Мут '
+            res = ' за запретку в '
+            stop = 1
+            if ctx.author.reward != 'Empty':
+                ctx.author.reward = 'Empty'
 
+    
     #mt = re.sub('[!@#$%^&*,.?()<>]','',mesag)
     #mt = mt.split(' ')
     mt = result
@@ -387,26 +460,30 @@ async def event_message(ctx):
         setmes = re.sub('[!@#$%^&*,.?()<>]','',setmes)
         setmes = set(setmes.split(' '))
         for t in nakrlist:
-            t2 = list(t & set(setmes))            
+            t2 = list(t & set(setmes))
             if len(t2)/len(t)>0.65:
-                await ctx.channel.timeout(author, 600,'Реклама?')
                 act = 'Мут '
                 res = ' за рекламу в '
+                m_time = 600
+                comm = 'Реклама?'
     if act =='':
         if 'clck' in mesag and 'follow' in mesag:
             print(mesag)
-            await ctx.channel.timeout(author, 600,'Реклама?')
             act = 'Мут '
             res = ' за рекламу в '
+            m_time = 600
+            comm = 'Реклама?'
 
     if act != '':
         if is_serv == 0:
             print(author+' '+act+res+time_now)
         addfile(dir_chan_log,act+author+res+time_now+'\n')
-        addfile(dir_user_log,act+author+res+time_now+'\n')        
+        addfile(dir_user_log,act+author+res+time_now+'\n')
         addfile(dir_bug_log,act+author+res+time_now+'\n')
-        addfile(dir_bug_log,time_now+' '+U_m+'\n')
+        addfile(dir_bug_log,time_now+' '+U_m+'\n\n')
     
+    if act == 'Мут ':
+        await ctx.channel.timeout(author, m_time,comm)
 
     if 'bot_init' in mesag:
         if is_mod:

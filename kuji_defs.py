@@ -2,38 +2,6 @@ import os
 import re
 from urllib.request import urlopen, Request
 
-Lett = {}
-Lett['а']=['а','a','@','á','A','А']
-Lett['б']=['б','b','6','Б','B']
-Lett['в']=['в','v','В','B']
-Lett['г']=['г','g','r','Г','G']
-Lett['д']=['д','d','9','Д','D']
-Lett['е']=['е','e','Е','E']
-Lett['ё']=['ё','e','Ё','E','Е']
-Lett['ж']=['ж','j','g','Ж','J']
-Lett['з']=['з','z','3','З','Z']
-Lett['и']=['и','u','i','ee','!','1','N','И','I']
-Lett['к']=['к','k','ck','К','K']
-Lett['л']=['л','l','ji','JI','Jl','Л','L']
-Lett['м']=['м','m','М','M']
-Lett['н']=['н','n','h','Н','H']
-Lett['о']=['о','o','0','О','O']
-Lett['п']=['п','n','p','ll','lI','Il','II','П','P']
-Lett['р']=['р','r','p','₽','Р','P','R']
-Lett['с']=['с','s','c','$','С','C','S']
-Lett['т']=['т','t','Т','T']
-Lett['у']=['у','y','u','У','Y']
-Lett['ф']=['ф','f','qp','Ф','F']
-Lett['х']=['х','h','x','Х','X']
-Lett['ц']=['ц','c','u','Ц','U']
-Lett['ч']=['ч','ch','4','Ч']
-Lett['ш']=['ш','sh','w','Ш','W']
-Lett['щ']=['щ','sch','w','Щ','W']
-Lett['ы']=['ы','bl','Ы','bI']
-Lett['э']=['э','a','e','Э']
-Lett['ю']=['ю','u','l-o','i-o','io','lo','l0','l-0','i0','i-0','Ю','U']
-Lett['я']=['я','ya','9','r','Я','R']
-
 
 
 def time0(s):
@@ -126,7 +94,7 @@ def html_finder(r_url):
 def mreq(t1):
     if 'youtu' in t1:
         if 'v=' in t1 :
-            print(t1)
+            #print(t1)
             if not '?v=' in t1:
                 t2 = re.findall(r'v=([\w-]+)[&?]',t1)
                 t1 = t2[0]
@@ -147,6 +115,7 @@ def mreq(t1):
             return('!sr '+t1)
         else:
             return(t1)
+
 
 def listedit(di,mes,com,nick = '-1859489484564'):
     j = '-1'
@@ -287,7 +256,7 @@ def rew_conf(di,te,rew,ch = '-',au = '-'):
     inp.close()
     return ret
 
-def raspoz_word(result,list_words,list_ch0,Lett):
+def raspoz_word(result,list_words,lisnw_now_charh0,Lett):
     t_1 = -1
     stop = 0
     while t_1<len(result)-1 and stop == 0:
@@ -295,7 +264,7 @@ def raspoz_word(result,list_words,list_ch0,Lett):
         word = result[t_1]
         if word in list_words:
             return word
-        if word[0] in list_ch0:
+        if word[0] in lisnw_now_charh0:
             j = -1
             while j<len(list_words)-1 and stop == 0:
                 list_t_word = []
@@ -306,18 +275,18 @@ def raspoz_word(result,list_words,list_ch0,Lett):
                 i = -1
                 while i<len(now_word)-1 and stop == 0:
                     i+=1
-                    t_c = now_word[i]
+                    nw_now_char = now_word[i]
                     tl = -1
-                    if t_c in Lett:
-                        t_lc = Lett[t_c]
+                    if nw_now_char in Lett:
+                        list_now_char = Lett[nw_now_char]
                     else:
-                        t_lc = t_c
+                        list_now_char = nw_now_char
                     found = 0
-                    while tl<len(t_lc)-1 and stop == 0 and found == 0:
+                    while tl<len(list_now_char)-1 and stop == 0 and found == 0:
                         tl+=1
-                        t_l = t_lc[tl]
-                        if t_l == t_lc[len(t_lc)-1] and not temp_w.startswith(t_l):
-                            #print(t_lc)
+                        t_l = list_now_char[tl]
+                        if t_l == list_now_char[len(list_now_char)-1] and not temp_w.startswith(t_l):
+                            #print(list_now_char)
                             #print(t_l)
                             found = 1
                         nex = 1
@@ -328,12 +297,12 @@ def raspoz_word(result,list_words,list_ch0,Lett):
                                     nex = 0
                         while temp_w.startswith(t_l) and stop == 0 and nex == 1:
                             temp_word=temp_w[0:len(t_l)].replace(t_l,'')+temp_w[len(t_l):]
-                            if t_c in Lett:
+                            if nw_now_char in Lett:
                                 if len(list_t_word) == 0:
-                                    list_t_word.append(t_c)
+                                    list_t_word.append(nw_now_char)
                                     found = 1
-                                elif temp_w[0:len(t_l)] in Lett[t_c] and not t_c in list_t_word:
-                                    list_t_word.append(t_c)
+                                elif temp_w[0:len(t_l)] in Lett[nw_now_char] and not nw_now_char in list_t_word:
+                                    list_t_word.append(nw_now_char)
                                     found = 1
                                 temp_w = temp_word
                                 #print(''.join(list_t_word))
@@ -342,3 +311,4 @@ def raspoz_word(result,list_words,list_ch0,Lett):
                                     if t_word in list_words:
                                         return word
     return 0
+
